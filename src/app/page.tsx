@@ -26,10 +26,19 @@ export default function HomePage() {
             Enter your measurements. See how our premium suits look on your exact body shape in real-time 3D. Zero guesswork, perfect fit.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/onboarding" className="btn-primary text-base px-7 py-3.5">Try On Now →</Link>
-            <Link href="/shop" className="btn-ghost text-base px-7 py-3.5">Browse Suits</Link>
+            {user ? (
+              <>
+                <Link href="/shop" className="btn-primary text-base px-7 py-3.5">Browse & Try On →</Link>
+                <Link href="/onboarding" className="btn-ghost text-base px-7 py-3.5">Update Measurements</Link>
+              </>
+            ) : (
+              <>
+                <Link href="/register" className="btn-primary text-base px-7 py-3.5">Get Started Free →</Link>
+                <Link href="/shop" className="btn-ghost text-base px-7 py-3.5">Browse Suits</Link>
+              </>
+            )}
           </div>
-          <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-3)' }}>No account required · Takes 30 seconds</p>
+          <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-3)' }}>Free to join · Set up in 30 seconds</p>
         </div>
       </section>
 
@@ -85,8 +94,8 @@ export default function HomePage() {
         <div className="max-w-2xl mx-auto text-center">
           <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff', marginBottom: '0.75rem' }}>Ready to find your perfect fit?</h2>
           <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '2rem', fontSize: '1rem' }}>30 seconds to set up. Instant 3D preview.</p>
-          <Link href="/onboarding" style={{ background: '#fff', color: 'var(--accent)', fontWeight: 700, padding: '0.85rem 2rem', borderRadius: 10, display: 'inline-block', fontSize: '1rem' }}>
-            Start Try-On
+          <Link href={user ? '/shop' : '/register'} style={{ background: '#fff', color: 'var(--accent)', fontWeight: 700, padding: '0.85rem 2rem', borderRadius: 10, display: 'inline-block', fontSize: '1rem' }}>
+            {user ? 'Start Shopping →' : 'Create Free Account →'}
           </Link>
         </div>
       </section>

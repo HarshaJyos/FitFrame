@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { getUserProfile, getOrders, Order, UserProfile } from '@/lib/firestore';
-import { SUIT_TEXTURES, MODEL_BASE } from '@/utils/modelSelector';
+
 import AuthGuard from '@/components/AuthGuard';
 import Navbar from '@/components/Navbar';
 
@@ -23,11 +23,7 @@ function AccountContent() {
         });
     }, [user]);
 
-    const currentSuitId = profile?.suitId ?? 6;
-    const currentSuit = SUIT_TEXTURES.find(s => s.id === currentSuitId) ?? SUIT_TEXTURES[5];
-
     const modelNum = profile?.selectedModelNumber ?? 5;
-    const modelPath = `${MODEL_BASE}/male_m0${String(modelNum).padStart(1, '')}.gltf`;
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -100,8 +96,11 @@ function AccountContent() {
                                     </div>
                                 )}
                                 <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem' }}>
-                                    <Link href="/tryon" className="btn-primary" style={{ flex: 1, padding: '0.75rem', textAlign: 'center', fontSize: '0.9rem' }}>
-                                        👕 Open Try-On Viewer
+                                    <Link href="/shop" className="btn-primary" style={{ flex: 1, padding: '0.75rem', textAlign: 'center', fontSize: '0.9rem' }}>
+                                        🛍️ Browse &amp; Try On Suits
+                                    </Link>
+                                    <Link href="/onboarding" style={{ flex: 1, padding: '0.75rem', textAlign: 'center', fontSize: '0.9rem', borderRadius: 12, border: '1.5px solid var(--border)', background: '#fff', color: 'var(--text)', fontWeight: 600, display: 'block' }}>
+                                        📐 Update Measurements
                                     </Link>
                                 </div>
                             </div>

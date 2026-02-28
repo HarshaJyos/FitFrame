@@ -35,7 +35,7 @@ export default function Navbar() {
                 {/* Desktop nav */}
                 <div className="hidden sm:flex items-center gap-6">
                     <Link href="/shop" className="nav-link">Shop</Link>
-                    {user && <Link href="/tryon" className="nav-link">Try On</Link>}
+
                     {user && <Link href="/wishlist" className="nav-link">Wishlist</Link>}
                 </div>
 
