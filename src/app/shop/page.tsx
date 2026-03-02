@@ -37,7 +37,7 @@ export default function ShopPage() {
     const handleWishlist = useCallback(async (suit: Suit, e: React.MouseEvent) => {
         e.preventDefault();
         if (!user || !suit.id) return;
-        const added = await toggleWishlist(user.uid, { suitId: suit.id, label: suit.name, price: suit.price, color: suit.color });
+        const added = await toggleWishlist(user.uid, { suitId: suit.id, label: suit.name, price: suit.price, originalPrice: suit.originalPrice, textureUrl: suit.textureUrl, color: suit.color });
         setWishlistedIds(prev => {
             const next = new Set(prev);
             if (added) next.add(suit.id!); else next.delete(suit.id!);

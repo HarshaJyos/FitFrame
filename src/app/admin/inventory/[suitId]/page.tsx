@@ -5,15 +5,15 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminGuard from '@/components/AdminGuard';
 import { getSuit, updateSuit, softDeleteSuit, Suit } from '@/lib/suits';
-import { MODEL_NUMBERS } from '@/utils/modelSelector';
 
 const CATEGORIES = ['Formal', 'Business', 'Casual', 'Premium', 'Party', 'Ethnic'];
+const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '28"', '30"', '32"', '34"', '36"', '38"'];
 
 const EMPTY: Omit<Suit, 'id' | 'createdAt' | 'updatedAt'> = {
     name: '', description: '', price: 0, originalPrice: 0,
     highlights: ['', '', ''], fabric: '', category: 'Formal',
     badge: '', color: '#1e3a5f', textureUrl: '', cloudinaryPublicId: '',
-    modelNumber: 5, stock: 50, isActive: true, isDeleted: false,
+    sizes: [], stock: 50, isActive: true, isDeleted: false,
 };
 
 function EditSuitContent() {
@@ -106,8 +106,8 @@ function EditSuitContent() {
                 price: Number(form.price),
                 originalPrice: Number(form.originalPrice),
                 stock: Number(form.stock),
-                modelNumber: Number(form.modelNumber),
                 highlights: form.highlights.filter(h => h.trim()),
+                sizes: form.sizes || [],
             };
             if (isNew) {
                 const { createSuit } = await import('@/lib/suits');
@@ -266,11 +266,22 @@ function EditSuitContent() {
                                 </select>
                             </div>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: 4 }}>3D Model Body Type (1–9)</label>
-                                <select value={form.modelNumber} onChange={e => set('modelNumber', parseInt(e.target.value, 10))}
-                                    style={{ width: '100%', padding: '0.6rem 0.8rem', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: '0.88rem', outline: 'none' }}>
-                                    {MODEL_NUMBERS.map(n => <option key={n} value={n}>Model #{n}</option>)}
-                                </select>
+                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: 6 }}>Available Sizes *</label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                                    {AVAILABLE_SIZES.map(s => {
+                                        const isSelected = form.sizes?.includes(s);
+                                        return (
+                                            <button key={s} type="button"
+                                                onClick={() => {
+                                                    const current = form.sizes || [];
+                                                    set('sizes', isSelected ? current.filter(x => x !== s) : [...current, s]);
+                                                }}
+                                                style={{ padding: '0.3rem 0.6rem', borderRadius: 8, border: `1px solid ${isSelected ? '#6366f1' : '#e2e8f0'}`, background: isSelected ? '#e0e7ff' : '#fff', color: isSelected ? '#4f46e5' : '#64748b', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}>
+                                                {s}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: 4 }}>Color Swatch (hex)</label>

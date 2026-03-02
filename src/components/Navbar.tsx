@@ -4,19 +4,41 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { getCart } from '@/lib/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function Navbar() {
     const { user, signOut, loading } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const [cartCount, setCartCount] = useState(0);
+    const [wishlistCount, setWishlistCount] = useState(0);
     const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
-        if (!user) { setCartCount(0); return; }
-        getCart(user.uid).then(c => setCartCount(c.reduce((s, i) => s + i.quantity, 0)));
-    }, [user, pathname]);
+        if (!user) {
+            setCartCount(0);
+            setWishlistCount(0);
+            return;
+        }
+
+        // Real-time listener for Cart
+        const cartUnsub = onSnapshot(collection(db, 'users', user.uid, 'cart'), (snap) => {
+            let count = 0;
+            snap.forEach(doc => { count += (doc.data().quantity || 1); });
+            setCartCount(count);
+        });
+
+        // Real-time listener for Wishlist
+        const wishlistUnsub = onSnapshot(collection(db, 'users', user.uid, 'wishlist'), (snap) => {
+            setWishlistCount(snap.size);
+        });
+
+        return () => {
+            cartUnsub();
+            wishlistUnsub();
+        };
+    }, [user]);
 
     const handleSignOut = async () => {
         await signOut();
@@ -36,7 +58,16 @@ export default function Navbar() {
                 <div className="hidden sm:flex items-center gap-6">
                     <Link href="/shop" className="nav-link">Shop</Link>
 
-                    {user && <Link href="/wishlist" className="nav-link">Wishlist</Link>}
+                    {user && (
+                        <Link href="/wishlist" className="nav-link" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            Wishlist
+                            {wishlistCount > 0 && (
+                                <span style={{ marginLeft: 6, padding: '2px 6px', borderRadius: 10, background: 'var(--accent)', color: '#fff', fontSize: '0.65rem', fontWeight: 700 }}>
+                                    {wishlistCount}
+                                </span>
+                            )}
+                        </Link>
+                    )}
                 </div>
 
                 {/* Right actions */}
@@ -48,8 +79,8 @@ export default function Navbar() {
                                 <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />
                             </svg>
                             {cartCount > 0 && (
-                                <span style={{ position: 'absolute', top: 0, right: 0, width: 16, height: 16, borderRadius: '50%', background: 'var(--accent)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    {cartCount > 9 ? '9+' : cartCount}
+                                <span style={{ position: 'absolute', top: -2, right: -4, minWidth: 18, height: 18, padding: '0 4px', borderRadius: 10, background: 'var(--accent)', color: '#fff', fontSize: '0.65rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
+                                    {cartCount > 99 ? '99+' : cartCount}
                                 </span>
                             )}
                         </Link>

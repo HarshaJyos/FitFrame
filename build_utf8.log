@@ -1,0 +1,72 @@
+﻿
+> my-app@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 13.8s
+  Running TypeScript ...
+npm : Failed to compile.
+At line:1 char:1
++ npm run build > build.log 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSp 
+   ecified: (Failed to compile.:St  
+  ring) [], RemoteException
+    + FullyQualifiedErrorId : Nativ 
+   eCommandError
+ 
+
+./src/app/shop/page.tsx:40:54
+Type error: Argument of type '{ 
+suitId: string; label: string; 
+price: number; color: string; }' is 
+not assignable to parameter of type 
+'Omit<WishlistItem, "id" | 
+"addedAt">'.
+  Type '{ suitId: string; label: 
+string; price: number; color: 
+string; }' is missing the following 
+properties from type 
+'Omit<WishlistItem, "id" | 
+"addedAt">': originalPrice, 
+textureUrl
+
+[0m [90m 38 |[39m         e[33m.
+[39mpreventDefault()[33m;[39m
+ [90m 39 |[39m         
+[36mif[39m ([33m![39muser 
+[33m||[39m 
+[33m![39msuit[33m.[39mid) 
+[36mreturn[39m[33m;[39m
+[31m[1m>[22m[39m[90m 40 |[39m 
+        [36mconst[39m added 
+[33m=[39m [36mawait[39m toggleWi
+shlist(user[33m.[39muid[33m,[39m
+ { suitId[33m:[39m 
+suit[33m.[39mid[33m,[39m 
+label[33m:[39m 
+suit[33m.[39mname[33m,[39m 
+price[33m:[39m 
+suit[33m.[39mprice[33m,[39m 
+color[33m:[39m 
+suit[33m.[39mcolor })[33m;[39m
+ [90m    |[39m                    
+                                  
+[31m[1m^[22m[39m
+ [90m 41 |[39m         
+setWishlistedIds(prev [33m=>[39m {
+ [90m 42 |[39m             
+[36mconst[39m next [33m=[39m 
+[36mnew[39m 
+[33mSet[39m(prev)[33m;[39m
+ [90m 43 |[39m             
+[36mif[39m (added) next[33m.[39m
+add(suit[33m.[39mid[33m![39m)[3
+3m;[39m [36melse[39m next[33m.[
+39m[36mdelete[39m(suit[33m.[39mi
+d[33m![39m)[33m;[39m[0m
+Next.js build worker exited with 
+code: 1 and signal: null

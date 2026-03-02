@@ -56,6 +56,8 @@ export interface WishlistItem {
     suitId: string;      // Firestore suit document ID
     label: string;
     price: number;
+    originalPrice: number;
+    textureUrl: string;
     color: string;
     addedAt?: Timestamp;
 }

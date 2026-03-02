@@ -21,29 +21,20 @@ export function getBMICategory(bmi: number): string {
     return 'Obese';
 }
 
-export function selectModel(bmi: number, bodyType: 'slim' | 'average' | 'muscular'): string {
-    let idx: number;
-    if (bmi < 17.5) idx = 1;
-    else if (bmi < 18.5) idx = bodyType === 'slim' ? 1 : 2;
-    else if (bmi < 21) idx = bodyType === 'muscular' ? 4 : (bodyType === 'slim' ? 2 : 3);
-    else if (bmi < 23) idx = bodyType === 'muscular' ? 5 : (bodyType === 'slim' ? 3 : 4);
-    else if (bmi < 25) idx = bodyType === 'muscular' ? 6 : (bodyType === 'slim' ? 4 : 5);
-    else if (bmi < 27.5) idx = 6;
-    else if (bmi < 30) idx = 7;
-    else if (bmi < 35) idx = 8;
-    else idx = 9;
-    return getModelPath(idx);
+export type BodyType = 'slim' | 'average' | 'muscular' | 'heavy';
+
+export function selectModel(bmi: number, bodyType: BodyType): string {
+    return getModelPath(selectModelNumber(bmi, bodyType));
 }
 
-export function selectModelNumber(bmi: number, bodyType: 'slim' | 'average' | 'muscular'): number {
+export function selectModelNumber(bmi: number, bodyType: BodyType): number {
     if (bmi < 17.5) return 1;
     if (bmi < 18.5) return bodyType === 'slim' ? 1 : 2;
-    if (bmi < 21) return bodyType === 'muscular' ? 4 : (bodyType === 'slim' ? 2 : 3);
-    if (bmi < 23) return bodyType === 'muscular' ? 5 : (bodyType === 'slim' ? 3 : 4);
-    if (bmi < 25) return bodyType === 'muscular' ? 6 : (bodyType === 'slim' ? 4 : 5);
-    if (bmi < 27.5) return 6;
-    if (bmi < 30) return 7;
-    if (bmi < 35) return 8;
+    if (bmi < 21) return bodyType === 'muscular' ? 4 : (bodyType === 'slim' ? 2 : (bodyType === 'heavy' ? 5 : 3));
+    if (bmi < 23) return bodyType === 'muscular' ? 5 : (bodyType === 'slim' ? 3 : (bodyType === 'heavy' ? 7 : 4));
+    if (bmi < 25) return bodyType === 'muscular' ? 6 : (bodyType === 'slim' ? 4 : (bodyType === 'heavy' ? 7 : 5));
+    if (bmi < 27.5) return bodyType === 'heavy' ? 8 : (bodyType === 'muscular' ? 6 : 7);
+    if (bmi < 32) return bodyType === 'heavy' ? 9 : 8;
     return 9;
 }
 

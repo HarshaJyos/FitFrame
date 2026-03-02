@@ -24,13 +24,13 @@ function WishlistContent() {
 
     const handleRemove = async (item: WishlistItem) => {
         if (!user) return;
-        await toggleWishlist(user.uid, { suitId: item.suitId, label: item.label, price: item.price, color: item.color });
+        await toggleWishlist(user.uid, { suitId: item.suitId, label: item.label, price: item.price, originalPrice: item.originalPrice, textureUrl: item.textureUrl, color: item.color });
         setItems(prev => prev.filter(i => i.suitId !== item.suitId));
     };
 
     const handleAddCart = async (item: WishlistItem) => {
         if (!user) return;
-        await addToCart(user.uid, { suitId: item.suitId, label: item.label, price: item.price, originalPrice: item.price, quantity: 1, textureUrl: '', color: item.color });
+        await addToCart(user.uid, { suitId: item.suitId, label: item.label, price: item.price, originalPrice: item.originalPrice, quantity: 1, textureUrl: item.textureUrl, color: item.color });
         setCartFeedback(p => ({ ...p, [item.suitId]: true }));
         setTimeout(() => setCartFeedback(p => ({ ...p, [item.suitId]: false })), 2000);
     };

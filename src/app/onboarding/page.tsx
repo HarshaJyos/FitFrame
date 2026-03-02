@@ -9,8 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { updateUserProfile } from '@/lib/firestore';
 import AuthGuard from '@/components/AuthGuard';
 import Navbar from '@/components/Navbar';
-
-type BodyType = 'slim' | 'average' | 'muscular';
+import { BodyType } from '@/utils/modelSelector';
 
 interface MeasData {
     height: number; weight: number;
@@ -132,8 +131,13 @@ function OnboardingContent() {
                             <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: 4 }}>Body Type</h2>
                             <p style={{ color: 'var(--text-2)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Helps refine your avatar&apos;s build and proportions.</p>
 
-                            <div className="grid grid-cols-3 gap-3">
-                                {([['slim', '🏃', 'Slim', 'Lean build'], ['average', '🧍', 'Average', 'Standard'], ['muscular', '💪', 'Athletic', 'Broad build']] as [BodyType, string, string, string][]).map(([type, icon, label, sub]) => (
+                            <div className="grid grid-cols-2 gap-3">
+                                {([
+                                    ['slim', '🏃', 'Slim', 'Lean build'],
+                                    ['average', '🧍', 'Average', 'Standard'],
+                                    ['muscular', '💪', 'Athletic', 'Broad build'],
+                                    ['heavy', '🐻', 'Softer / Heavy', 'Fuller build']
+                                ] as [BodyType, string, string, string][]).map(([type, icon, label, sub]) => (
                                     <button key={type} onClick={() => set('bodyType', type)}
                                         style={{ padding: '1rem 0.5rem', borderRadius: 12, textAlign: 'center', border: `2px solid ${data.bodyType === type ? 'var(--accent)' : 'var(--border)'}`, background: data.bodyType === type ? 'var(--accent-lt)' : 'var(--bg-card)', cursor: 'pointer', transition: 'all 0.15s' }}>
                                         <div style={{ fontSize: '1.8rem', marginBottom: 4 }}>{icon}</div>

@@ -99,7 +99,7 @@ export default function ProductPage() {
     const handleWishlist = useCallback(async () => {
         if (!user) { router.push('/login'); return; }
         if (!suit?.id) return;
-        const added = await toggleWishlist(user.uid, { suitId: suit.id, label: suit.name, price: suit.price, color: suit.color });
+        const added = await toggleWishlist(user.uid, { suitId: suit.id, label: suit.name, price: suit.price, color: suit.color, originalPrice: suit.originalPrice, textureUrl: suit.textureUrl });
         setWishlisted(added);
     }, [user, suit, router]);
 
@@ -262,6 +262,20 @@ export default function ProductPage() {
                                 </li>
                             ))}
                         </ul>
+                    )}
+
+                    {/* Available Sizes */}
+                    {suit.sizes?.length > 0 && (
+                        <div style={{ marginBottom: '1.25rem' }}>
+                            <p style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text)', marginBottom: 8, textTransform: 'uppercase' }}>Available Sizes</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                {suit.sizes.map(s => (
+                                    <span key={s} style={{ padding: '4px 12px', fontSize: '0.82rem', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text-2)', fontWeight: 600 }}>
+                                        {s}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
                     )}
 
                     {/* Size recommendation */}

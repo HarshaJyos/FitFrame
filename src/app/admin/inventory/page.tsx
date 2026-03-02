@@ -130,7 +130,7 @@ function InventoryContent() {
                                     </div>
                                     <div>
                                         <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.88rem' }}>{suit.name}</div>
-                                        <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{suit.category} · Model #{suit.modelNumber}</div>
+                                        <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{suit.category} · {suit.sizes?.length || 0} Sizes</div>
                                     </div>
                                 </div>
 

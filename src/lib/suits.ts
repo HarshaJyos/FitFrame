@@ -19,7 +19,7 @@ export interface Suit {
     color: string;                 // hex for UI swatch
     textureUrl: string;            // Cloudinary URL
     cloudinaryPublicId?: string;
-    modelNumber: number;           // 1–5 (which local GLTF to use for 3D preview)
+    sizes: string[];               // available sizes (e.g., 'XS', '32"')
     stock: number;
     isActive: boolean;
     isDeleted: boolean;
