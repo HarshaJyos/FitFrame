@@ -189,8 +189,8 @@ export default function ProductPage() {
                 {/* ── Left: 3D viewer ─────────────────────────────────── */}
                 <div>
                     <div style={{ height: 480, borderRadius: 20, overflow: 'hidden', background: '#f5f0eb', position: 'relative', boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>
-                        {!modelLoaded && (
-                            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+                        {userData && !modelLoaded && (
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, zIndex: 10 }}>
                                 <div style={{ width: 200, height: 6, borderRadius: 99, background: '#e2d9cf', overflow: 'hidden' }}>
                                     <div style={{ height: '100%', borderRadius: 99, background: 'var(--accent)', width: `${loadPct}%`, transition: 'width 0.3s ease' }} />
                                 </div>
