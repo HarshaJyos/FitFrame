@@ -99,7 +99,7 @@ export default function ProductPage() {
     const handleWishlist = useCallback(async () => {
         if (!user) { router.push('/login'); return; }
         if (!suit?.id) return;
-        const added = await toggleWishlist(user.uid, { suitId: suit.id, label: suit.name, price: suit.price, color: suit.color, originalPrice: suit.originalPrice, textureUrl: suit.textureUrl });
+        const added = await toggleWishlist(user.uid, { suitId: suit.id, label: suit.name, price: suit.price, color: suit.color, originalPrice: suit.originalPrice, textureUrl: suit.textureUrl, bannerUrl: suit.bannerUrl });
         setWishlisted(added);
     }, [user, suit, router]);
 
@@ -114,6 +114,7 @@ export default function ProductPage() {
             originalPrice: suit.originalPrice,
             quantity: 1,
             textureUrl: suit.textureUrl,
+            bannerUrl: suit.bannerUrl,
             color: suit.color,
         });
         setCartLoading(false);

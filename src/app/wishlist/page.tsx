@@ -24,13 +24,13 @@ function WishlistContent() {
 
     const handleRemove = async (item: WishlistItem) => {
         if (!user) return;
-        await toggleWishlist(user.uid, { suitId: item.suitId, label: item.label, price: item.price, originalPrice: item.originalPrice, textureUrl: item.textureUrl, color: item.color });
+        await toggleWishlist(user.uid, { suitId: item.suitId, label: item.label, price: item.price, originalPrice: item.originalPrice, textureUrl: item.textureUrl, bannerUrl: item.bannerUrl, color: item.color });
         setItems(prev => prev.filter(i => i.suitId !== item.suitId));
     };
 
     const handleAddCart = async (item: WishlistItem) => {
         if (!user) return;
-        await addToCart(user.uid, { suitId: item.suitId, label: item.label, price: item.price, originalPrice: item.originalPrice, quantity: 1, textureUrl: item.textureUrl, color: item.color });
+        await addToCart(user.uid, { suitId: item.suitId, label: item.label, price: item.price, originalPrice: item.originalPrice, quantity: 1, textureUrl: item.textureUrl, bannerUrl: item.bannerUrl, color: item.color });
         setCartFeedback(p => ({ ...p, [item.suitId]: true }));
         setTimeout(() => setCartFeedback(p => ({ ...p, [item.suitId]: false })), 2000);
     };
@@ -57,7 +57,12 @@ function WishlistContent() {
                             return (
                                 <div key={item.suitId} className="card overflow-hidden">
                                     <Link href={`/shop/${item.suitId}`}>
-                                        <div style={{ height: 140, background: `linear-gradient(160deg, ${item.color}88, ${item.color})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>🧥</div>
+                                        <div style={{ height: 140, background: item.bannerUrl ? '#fff' : `linear-gradient(160deg, ${item.color}88, ${item.color})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', position: 'relative', overflow: 'hidden' }}>
+                                            {(item.bannerUrl || item.textureUrl) ? (
+                                                <img src={item.bannerUrl || item.textureUrl} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: item.bannerUrl ? 1 : 0.7 }} />
+                                            ) : null}
+                                            {!item.bannerUrl && <span style={{ zIndex: 1 }}>🧥</span>}
+                                        </div>
                                     </Link>
                                     <div style={{ padding: '1rem' }}>
                                         <Link href={`/shop/${item.suitId}`}>

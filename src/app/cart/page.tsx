@@ -133,7 +133,13 @@ function CartContent() {
                                     onChange={() => item.id && toggleSelection(item.id)}
                                     style={{ width: 18, height: 18, cursor: 'pointer', accentColor: 'var(--accent)' }}
                                 />
-                                <div style={{ width: 60, height: 60, borderRadius: 10, background: `linear-gradient(160deg, ${item.color}88, ${item.color})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', flexShrink: 0 }}>🧥</div>
+                                <div style={{ width: 60, height: 60, borderRadius: 10, background: `linear-gradient(160deg, ${item.color}88, ${item.color})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', flexShrink: 0, overflow: 'hidden', position: 'relative' }}>
+                                    {(item.bannerUrl || item.textureUrl) ? (
+                                        <img src={item.bannerUrl || item.textureUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: item.bannerUrl ? 1 : 0.7 }} />
+                                    ) : (
+                                        <span>🧥</span>
+                                    )}
+                                </div>
                                 <div style={{ flex: 1 }}>
                                     <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>{item.label}</p>
                                     <p style={{ fontSize: '0.82rem', color: 'var(--text-3)', marginBottom: 6 }}>₹{item.price.toLocaleString()} each</p>

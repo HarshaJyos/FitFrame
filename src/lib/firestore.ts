@@ -47,6 +47,7 @@ export interface CartItem {
     originalPrice: number;
     quantity: number;
     textureUrl: string;  // Cloudinary URL
+    bannerUrl?: string;  // Cloudinary URL for product display photo
     color: string;
     addedAt?: Timestamp;
 }
@@ -58,6 +59,7 @@ export interface WishlistItem {
     price: number;
     originalPrice: number;
     textureUrl: string;
+    bannerUrl?: string;
     color: string;
     addedAt?: Timestamp;
 }
@@ -66,6 +68,7 @@ export interface OrderItem {
     suitId: string;      // Firestore suit document ID
     label: string;
     price: number;
+    bannerUrl?: string;
     shirtSize: string;
     pantsSize: string;
 }

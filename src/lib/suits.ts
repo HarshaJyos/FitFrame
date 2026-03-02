@@ -19,6 +19,8 @@ export interface Suit {
     color: string;                 // hex for UI swatch
     textureUrl: string;            // Cloudinary URL
     cloudinaryPublicId?: string;
+    bannerUrl?: string;            // Cloudinary URL for product display photo
+    cloudinaryBannerPublicId?: string;
     sizes: string[];               // available sizes (e.g., 'XS', '32"')
     stock: number;
     isActive: boolean;

@@ -35,6 +35,12 @@ function EditSuitContent() {
     const [preview, setPreview] = useState<string | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
+    // Banner upload state
+    const [uploadingBanner, setUploadingBanner] = useState(false);
+    const [uploadMsgBanner, setUploadMsgBanner] = useState('');
+    const [previewBanner, setPreviewBanner] = useState<string | null>(null);
+    const bannerRef = useRef<HTMLInputElement>(null);
+
     const set = <K extends keyof typeof form>(key: K, val: typeof form[K]) =>
         setForm(p => ({ ...p, [key]: val }));
 
@@ -84,12 +90,45 @@ function EditSuitContent() {
         }
     };
 
+    const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setPreviewBanner(URL.createObjectURL(file));
+        setUploadMsgBanner('');
+    };
+
+    const handleUploadBanner = async () => {
+        const file = bannerRef.current?.files?.[0];
+        if (!file) return;
+        setUploadingBanner(true);
+        setUploadMsgBanner('');
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('folder', 'fitframe/banners');
+            if (!isNew && suitId) formData.append('publicId', `suit_${suitId}_banner`);
+
+            const res = await fetch('/api/cloudinary/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error ?? 'Upload failed');
+
+            set('bannerUrl', data.url);
+            set('cloudinaryBannerPublicId', data.publicId);
+            setUploadMsgBanner('✅ Uploaded! Save the form to apply.');
+        } catch (err: unknown) {
+            setUploadMsgBanner(`❌ ${err instanceof Error ? err.message : 'Upload failed'}`);
+        } finally {
+            setUploadingBanner(false);
+        }
+    };
+
     const validate = (): string => {
         if (!form.name.trim()) return 'Name is required';
         if (!form.description.trim()) return 'Description is required';
         if (form.price <= 0) return 'Price must be > 0';
         if (form.originalPrice < form.price) return 'Original price must be ≥ selling price';
         if (!form.textureUrl) return 'Please upload a texture image first';
+        if (!form.bannerUrl) return 'Please upload a banner image first';
         if (!form.fabric.trim()) return 'Fabric is required';
         if (form.stock < 0) return 'Stock cannot be negative';
         return '';
@@ -233,6 +272,32 @@ function EditSuitContent() {
                         </div>
                         {uploadMsg && <div style={{ marginTop: 6, padding: '0.5rem 0.7rem', borderRadius: 8, background: uploadMsg.startsWith('✅') ? '#f0fdf4' : '#fef2f2', border: `1px solid ${uploadMsg.startsWith('✅') ? '#bbf7d0' : '#fecaca'}`, fontSize: '0.75rem', color: uploadMsg.startsWith('✅') ? '#15803d' : '#dc2626' }}>{uploadMsg}</div>}
                         {form.textureUrl && !preview && <div style={{ marginTop: 4, fontSize: '0.68rem', color: '#94a3b8', wordBreak: 'break-all' }}>Current: {form.textureUrl.slice(0, 60)}…</div>}
+                    </div>
+
+                    {/* Banner upload */}
+                    <div style={{ background: '#fff', borderRadius: 16, padding: '1.5rem', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
+                        <h3 style={{ fontWeight: 700, color: '#1e293b', marginBottom: '0.85rem', fontSize: '0.95rem' }}>Suit Banner (Cloudinary) *</h3>
+                        <div onClick={() => bannerRef.current?.click()}
+                            style={{ height: 140, border: '2px dashed #c7d2fe', borderRadius: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: previewBanner || form.bannerUrl ? '#f5f3ff' : '#fafafa', overflow: 'hidden', position: 'relative', marginBottom: '0.75rem' }}>
+                            {(previewBanner || form.bannerUrl) ? (
+                                <img src={previewBanner ?? form.bannerUrl} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                                <>
+                                    <div style={{ fontSize: '2rem', marginBottom: 4 }}>🖼️</div>
+                                    <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Click to upload banner image</div>
+                                    <div style={{ fontSize: '0.72rem', color: '#c4c9d4', marginTop: 2 }}>PNG/JPG/WebP · 800×1200 recommended</div>
+                                </>
+                            )}
+                        </div>
+                        <input ref={bannerRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={handleBannerChange} style={{ display: 'none' }} />
+                        <div style={{ display: 'flex', gap: 6 }}>
+                            <button onClick={handleUploadBanner} disabled={uploadingBanner || !bannerRef.current?.files?.length}
+                                style={{ flex: 1, padding: '0.5rem', borderRadius: 8, background: bannerRef.current?.files?.length ? 'linear-gradient(135deg, #7c3aed, #6366f1)' : '#f1f5f9', color: bannerRef.current?.files?.length ? '#fff' : '#94a3b8', border: 'none', fontWeight: 700, fontSize: '0.82rem', cursor: uploadingBanner ? 'wait' : 'pointer' }}>
+                                {uploadingBanner ? 'Uploading…' : '☁️ Upload Banner'}
+                            </button>
+                        </div>
+                        {uploadMsgBanner && <div style={{ marginTop: 6, padding: '0.5rem 0.7rem', borderRadius: 8, background: uploadMsgBanner.startsWith('✅') ? '#f0fdf4' : '#fef2f2', border: `1px solid ${uploadMsgBanner.startsWith('✅') ? '#bbf7d0' : '#fecaca'}`, fontSize: '0.75rem', color: uploadMsgBanner.startsWith('✅') ? '#15803d' : '#dc2626' }}>{uploadMsgBanner}</div>}
+                        {form.bannerUrl && !previewBanner && <div style={{ marginTop: 4, fontSize: '0.68rem', color: '#94a3b8', wordBreak: 'break-all' }}>Current: {form.bannerUrl.slice(0, 60)}…</div>}
                     </div>
 
                     {/* Pricing + Stock */}

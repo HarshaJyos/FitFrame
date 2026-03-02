@@ -125,8 +125,8 @@ function InventoryContent() {
                                 {/* Suit name + color swatch */}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                     <div style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', background: `linear-gradient(160deg, ${suit.color}66, ${suit.color})`, flexShrink: 0, position: 'relative' }}>
-                                        {suit.textureUrl && <img src={suit.textureUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} />}
-                                        {!suit.textureUrl && <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🧥</span>}
+                                        {(suit.bannerUrl || suit.textureUrl) && <img src={suit.bannerUrl || suit.textureUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: suit.bannerUrl ? 1 : 0.7 }} />}
+                                        {(!suit.bannerUrl && !suit.textureUrl) && <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🧥</span>}
                                     </div>
                                     <div>
                                         <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.88rem' }}>{suit.name}</div>

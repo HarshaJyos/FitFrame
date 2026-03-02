@@ -137,14 +137,16 @@ export default function ShopPage() {
                             return (
                                 <div key={suit.id} style={{ position: 'relative', opacity: outOfStock ? 0.75 : 1 }}>
                                     <Link href={`/shop/${suit.id}`} className="product-card card overflow-hidden block">
-                                        {/* Texture / swatch */}
-                                        <div style={{ height: 200, background: `linear-gradient(160deg, ${suit.color}55, ${suit.color}cc)`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', padding: '0 0.75rem 0.75rem', position: 'relative', overflow: 'hidden' }}>
-                                            {suit.textureUrl ? (
+                                        {/* Texture / swatch / banner */}
+                                        <div style={{ height: 200, background: suit.bannerUrl ? '#fff' : `linear-gradient(160deg, ${suit.color}55, ${suit.color}cc)`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', padding: '0 0.75rem 0.75rem', position: 'relative', overflow: 'hidden' }}>
+                                            {suit.bannerUrl ? (
+                                                <img src={suit.bannerUrl} alt={suit.name} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                            ) : suit.textureUrl ? (
                                                 <img src={suit.textureUrl} alt={suit.name}
                                                     style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.35 }}
                                                     onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                             ) : null}
-                                            <span style={{ fontSize: '3.5rem', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-65%)', zIndex: 1 }}>🧥</span>
+                                            {!suit.bannerUrl && <span style={{ fontSize: '3.5rem', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-65%)', zIndex: 1 }}>🧥</span>}
 
                                             <div className="flex gap-1.5 flex-wrap justify-center" style={{ zIndex: 2, position: 'relative' }}>
                                                 {suit.badge && <span className="badge" style={{ fontSize: '10px' }}>{suit.badge}</span>}
