@@ -106,7 +106,17 @@ function AccountContent() {
                             </div>
                         )}
 
-                        {/* Order history */}
+                        {/* Addresses quick link */}
+                        <div className="card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent-lt)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>📍</div>
+                                <div>
+                                    <p style={{ fontWeight: 700, color: 'var(--text)' }}>Saved Addresses</p>
+                                    <p style={{ fontSize: '0.78rem', color: 'var(--text-2)' }}>Manage your delivery addresses</p>
+                                </div>
+                            </div>
+                            <Link href="/account/addresses" style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.85rem' }}>Manage →</Link>
+                        </div>
                         <div className="card" style={{ padding: '1.5rem' }}>
                             <h3 style={{ fontWeight: 700, color: 'var(--text)', marginBottom: '1rem' }}>Order History</h3>
                             {orders.length === 0 ? (
@@ -118,18 +128,50 @@ function AccountContent() {
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                     {orders.map(order => (
-                                        <div key={order.id} style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-                                            <div style={{ padding: '0.75rem 1rem', background: 'var(--bg)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div key={order.id} style={{ border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+                                            <div style={{ padding: '0.85rem 1rem', background: 'var(--bg)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <div>
-                                                    <p style={{ fontSize: '0.72rem', color: 'var(--text-3)', marginBottom: 2 }}>Order ID: <code style={{ fontSize: '0.7rem' }}>{order.razorpayOrderId}</code></p>
-                                                    <p style={{ fontSize: '0.72rem', color: 'var(--text-3)' }}>Payment: <code style={{ fontSize: '0.7rem' }}>{order.razorpayPaymentId}</code></p>
+                                                    <p style={{ fontSize: '0.72rem', color: 'var(--text-3)', marginBottom: 2 }}>Order: <code style={{ fontSize: '0.7rem' }}>{order.razorpayOrderId}</code></p>
+                                                    {order.shippingAddress && (
+                                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-2)' }}>📍 {order.shippingAddress.name} · {order.shippingAddress.city}</p>
+                                                    )}
                                                 </div>
                                                 <span style={{ background: '#dcfce7', color: '#15803d', fontWeight: 700, fontSize: '0.72rem', padding: '3px 10px', borderRadius: 99 }}>
-                                                    ✓ {order.status.toUpperCase()}
+                                                    ✓ PAID
                                                 </span>
                                             </div>
+                                            {/* Shipment progress */}
+                                            {order.shipmentStatus && (() => {
+                                                const SHIP_STEPS = ['placed', 'processing', 'shipped', 'out_for_delivery', 'delivered'];
+                                                const SHIP_LABELS = ['Placed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
+                                                const SHIP_ICONS = ['🛒', '⚙️', '📫', '🛵', '✓'];
+                                                const idx = SHIP_STEPS.indexOf(order.shipmentStatus);
+                                                return (
+                                                    <div style={{ padding: '0.85rem 1rem', background: '#fafafa', borderBottom: '1px solid var(--border)' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                                                            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-2)' }}>Shipment Status</span>
+                                                            {order.trackingNumber && <span style={{ fontSize: '0.68rem', color: 'var(--text-3)', fontFamily: 'monospace' }}>TRK: {order.trackingNumber}</span>}
+                                                        </div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                                                            {SHIP_STEPS.map((s, i) => {
+                                                                const done = i <= idx;
+                                                                return (
+                                                                    <div key={s} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                                                                        {i > 0 && <div style={{ position: 'absolute', top: 12, right: '50%', left: '-50%', height: 2, background: i <= idx ? 'var(--accent)' : 'var(--border)', zIndex: 0 }} />}
+                                                                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: done ? 'var(--accent)' : 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', color: done ? '#fff' : 'var(--text-3)', zIndex: 1, position: 'relative', fontWeight: 700 }}>
+                                                                            {i === idx ? SHIP_ICONS[i] : (done ? '✓' : i + 1)}
+                                                                        </div>
+                                                                        <span style={{ fontSize: '0.55rem', color: done ? 'var(--accent)' : 'var(--text-3)', textAlign: 'center', marginTop: 3, lineHeight: 1.2 }}>{SHIP_LABELS[i]}</span>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                        {order.estimatedDelivery && <p style={{ fontSize: '0.72rem', color: 'var(--text-2)', marginTop: 6 }}>📅 Est. delivery: {order.estimatedDelivery}</p>}
+                                                    </div>
+                                                );
+                                            })()}
                                             {order.items.map((item, i) => (
-                                                <div key={i} style={{ padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: i < order.items.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                                                <div key={i} style={{ padding: '0.65rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: i < order.items.length - 1 ? '1px solid var(--border)' : 'none' }}>
                                                     <div>
                                                         <p style={{ fontWeight: 600, color: 'var(--text)', fontSize: '0.88rem' }}>{item.label}</p>
                                                         <p style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>Size: {item.shirtSize} jacket · {item.pantsSize} trousers</p>

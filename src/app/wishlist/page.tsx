@@ -11,7 +11,7 @@ function WishlistContent() {
     const { user } = useAuth();
     const [items, setItems] = useState<WishlistItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [cartFeedback, setCartFeedback] = useState<Record<number, boolean>>({});
+    const [cartFeedback, setCartFeedback] = useState<Record<string, boolean>>({});
 
     const loadWishlist = useCallback(async () => {
         if (!user) return;
@@ -30,7 +30,7 @@ function WishlistContent() {
 
     const handleAddCart = async (item: WishlistItem) => {
         if (!user) return;
-        await addToCart(user.uid, { suitId: item.suitId, label: item.label, price: item.price, originalPrice: item.price, quantity: 1, textureFile: '', color: item.color });
+        await addToCart(user.uid, { suitId: item.suitId, label: item.label, price: item.price, originalPrice: item.price, quantity: 1, textureUrl: '', color: item.color });
         setCartFeedback(p => ({ ...p, [item.suitId]: true }));
         setTimeout(() => setCartFeedback(p => ({ ...p, [item.suitId]: false })), 2000);
     };

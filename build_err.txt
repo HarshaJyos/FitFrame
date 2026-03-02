@@ -1,0 +1,77 @@
+﻿
+> my-app@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 6.6s
+  Running TypeScript ...
+npm : Failed to compile.
+At line:1 char:1
++ npm run build 2>&1 | Out-File 
+build_err.txt -Encoding utf8; 
+Get-Conte ...
++ ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSp 
+   ecified: (Failed to compile.:St  
+  ring) [], RemoteException
+    + FullyQualifiedErrorId : Nativ 
+   eCommandError
+ 
+
+./src/app/wishlist/page.tsx:33:136
+Type error: Object literal may only 
+specify known properties, and 
+'textureFile' does not exist in 
+type 'Omit<CartItem, "id" | 
+"addedAt">'.
+
+[0m [90m 31 |[39m     
+[36mconst[39m handleAddCart 
+[33m=[39m [36masync[39m 
+(item[33m:[39m 
+[33mWishlistItem[39m) 
+[33m=>[39m {
+ [90m 32 |[39m         
+[36mif[39m ([33m![39muser) 
+[36mreturn[39m[33m;[39m
+[31m[1m>[22m[39m[90m 33 |[39m 
+        [36mawait[39m addToCart(us
+er[33m.[39muid[33m,[39m { 
+suitId[33m:[39m 
+item[33m.[39msuitId[33m,[39m 
+label[33m:[39m 
+item[33m.[39mlabel[33m,[39m 
+price[33m:[39m 
+item[33m.[39mprice[33m,[39m 
+originalPrice[33m:[39m 
+item[33m.[39mprice[33m,[39m 
+quantity[33m:[39m 
+[35m1[39m[33m,[39m 
+textureFile[33m:[39m 
+[32m''[39m[33m,[39m 
+color[33m:[39m 
+item[33m.[39mcolor })[33m;[39m
+ [90m    |[39m                    
+                                    
+                                    
+                                    
+        [31m[1m^[22m[39m
+ [90m 34 |[39m         
+setCartFeedback(p [33m=>[39m ({ 
+[33m...[39mp[33m,[39m 
+[item[33m.[39msuitId][33m:[39m 
+[36mtrue[39m }))[33m;[39m
+ [90m 35 |[39m         
+setTimeout(() [33m=>[39m 
+setCartFeedback(p [33m=>[39m ({ 
+[33m...[39mp[33m,[39m 
+[item[33m.[39msuitId][33m:[39m 
+[36mfalse[39m }))[33m,[39m 
+[35m2000[39m)[33m;[39m
+ [90m 36 |[39m     
+}[33m;[39m[0m
+Next.js build worker exited with 
+code: 1 and signal: null

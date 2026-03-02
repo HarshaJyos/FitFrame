@@ -4,7 +4,6 @@ import { useEffect, useRef, useCallback } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three-stdlib';
-import { MODEL_BASE } from '@/utils/modelSelector';
 
 // ─── Shared texture cache (persists across component mounts) ─────────────────
 const textureCache = new Map<string, THREE.Texture>();
@@ -18,18 +17,6 @@ function getCachedTexture(url: string, loader: THREE.TextureLoader): THREE.Textu
     return tex;
 }
 
-// ─── Pre-warm suit texture cache ─────────────────────────────────────────────
-let preloadDone = false;
-export function preloadSuitTextures() {
-    if (preloadDone) return;
-    preloadDone = true;
-    const loader = new THREE.TextureLoader();
-    for (let i = 1; i <= 9; i++) {
-        const n = String(i).padStart(2, '0');
-        const url = `${MODEL_BASE}/male_casualsuit${n}_diffuse.png`;
-        getCachedTexture(url, loader);
-    }
-}
 
 // ─── Fix GLTF material issues ─────────────────────────────────────────────────
 // All materials exported with alphaMode=BLEND and baseColorFactor alpha=0
@@ -65,17 +52,17 @@ export interface AvatarViewer3DHandle {
 
 interface AvatarViewer3DProps {
     modelPath: string;
-    suitTextureUrl: string;
-    onReady?: () => void;
-    onLoadProgress?: (pct: number) => void;
+    texturePath: string;          // Cloudinary URL (or any URL)
+    onLoaded?: () => void;
+    onProgress?: (pct: number) => void;
     viewerRef?: React.MutableRefObject<AvatarViewer3DHandle | null>;
 }
 
 export default function AvatarViewer3D({
     modelPath,
-    suitTextureUrl,
-    onReady,
-    onLoadProgress,
+    texturePath,
+    onLoaded,
+    onProgress,
     viewerRef,
 }: AvatarViewer3DProps) {
     const mountRef = useRef<HTMLDivElement>(null);
@@ -83,10 +70,10 @@ export default function AvatarViewer3D({
     // Keep live mutable refs so closures inside useEffect don't go stale
     const suitMatRefs = useRef<THREE.MeshStandardMaterial[]>([]);
     const texLoader = useRef(new THREE.TextureLoader());
-    const onReadyRef = useRef(onReady);
-    onReadyRef.current = onReady;
-    const onProgressRef = useRef(onLoadProgress);
-    onProgressRef.current = onLoadProgress;
+    const onLoadedRef = useRef(onLoaded);
+    onLoadedRef.current = onLoaded;
+    const onProgressRef = useRef(onProgress);
+    onProgressRef.current = onProgress;
 
     // Expose texture swap via forwarded handle ref
     const swapSuitTexture = useCallback((url: string) => {
@@ -179,8 +166,8 @@ export default function AvatarViewer3D({
         const loader = new GLTFLoader();
         let model: THREE.Group | null = null;
 
-        // Capture current suitTextureUrl at load time
-        const initialSuitUrl = suitTextureUrl;
+        // Capture current texturePath at load time
+        const initialSuitUrl = texturePath;
 
         loader.load(
             modelPath,
@@ -241,7 +228,7 @@ export default function AvatarViewer3D({
                 controls.maxDistance = height * 3;
                 controls.update();
 
-                onReadyRef.current?.();
+                onLoadedRef.current?.();
             },
             (xhr) => {
                 if (xhr.total) onProgressRef.current?.(Math.round((xhr.loaded / xhr.total) * 100));
@@ -288,11 +275,11 @@ export default function AvatarViewer3D({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [modelPath]);
 
-    // Sync texture when suitTextureUrl prop changes after mount
+    // Sync texture when texturePath prop changes after mount
     useEffect(() => {
         if (suitMatRefs.current.length === 0) return;
-        swapSuitTexture(suitTextureUrl);
-    }, [suitTextureUrl, swapSuitTexture]);
+        swapSuitTexture(texturePath);
+    }, [texturePath, swapSuitTexture]);
 
     return <div ref={mountRef} style={{ width: '100%', height: '100%' }} />;
 }

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getCart, removeFromCart, updateCartQuantity, CartItem } from '@/lib/firestore';
-import { SUIT_TEXTURES } from '@/utils/modelSelector';
+
 import AuthGuard from '@/components/AuthGuard';
 import Navbar from '@/components/Navbar';
 import PaymentModal from '@/components/PaymentModal';
@@ -41,10 +41,13 @@ function CartContent() {
 
     const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
 
-    const orderItems = items.map(i => {
-        const suit = SUIT_TEXTURES.find(s => s.id === i.suitId);
-        return { suitId: i.suitId, label: i.label, price: i.price * i.quantity, shirtSize: 'M', pantsSize: '32"' };
-    });
+    const orderItems = items.map(i => ({
+        suitId: i.suitId,
+        label: i.label,
+        price: i.price * i.quantity,
+        shirtSize: 'M',
+        pantsSize: '32"',
+    }));
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>

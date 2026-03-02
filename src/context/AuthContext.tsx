@@ -14,9 +14,12 @@ import {
 import { auth } from '@/lib/firebase';
 import { createUserProfile } from '@/lib/firestore';
 
+const ADMIN_EMAIL = 'admin@admin.com';
+
 interface AuthContextValue {
     user: User | null;
     loading: boolean;
+    isAdmin: boolean;
     signInWithGoogle: () => Promise<void>;
     signInWithEmail: (email: string, password: string) => Promise<void>;
     signUp: (email: string, password: string, displayName: string) => Promise<void>;
@@ -28,6 +31,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const isAdmin = user?.email === ADMIN_EMAIL;
 
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (u) => {
@@ -67,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, loading, signInWithGoogle, signInWithEmail, signUp, signOut }}>
+        <AuthContext.Provider value={{ user, loading, isAdmin, signInWithGoogle, signInWithEmail, signUp, signOut }}>
             {children}
         </AuthContext.Provider>
     );

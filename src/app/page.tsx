@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { SUIT_TEXTURES } from '@/utils/modelSelector';
+
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 
 export default function HomePage() {
   const { user } = useAuth();
-  const featured = SUIT_TEXTURES.filter(s => s.badge);
+
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
@@ -47,7 +47,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {[
             { icon: '📐', title: 'Avatar from Your Measurements', desc: 'Input height, weight, chest, waist and hip. We select the closest 3D body model instantly.' },
-            { icon: '🎽', title: '9 Exclusive Suits', desc: 'From formal wool blends to casual linens — see all 9 styles on your exact body shape.' },
+            { icon: '🎽', title: 'Exclusive Suit Catalog', desc: 'From formal wool blends to casual linens — see every style on your exact body shape before buying.' },
             { icon: '🛍️', title: 'Confident Sizing', desc: 'We recommend your shirt and trouser size with 92% confidence based on your real measurements.' },
           ].map((f, i) => (
             <div key={i} className="card p-6" style={{ animationDelay: `${i * 0.1}s` }}>
@@ -59,33 +59,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Featured Suits ── */}
+      {/* ── Shop CTA ── */}
       <section className="max-w-6xl mx-auto px-5 pb-16">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <h2 className="section-title">Featured Suits</h2>
-            <p style={{ color: 'var(--text-2)', fontSize: '0.9rem' }}>Our most-loved styles this season</p>
-          </div>
-          <Link href="/shop" style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.9rem' }}>View all →</Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {featured.map(suit => (
-            <Link key={suit.id} href={`/shop/${suit.id}`} className="product-card card overflow-hidden block">
-              {/* Colour swatch thumbnail */}
-              <div style={{ height: 160, background: `linear-gradient(160deg, ${suit.color}99, ${suit.color})`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                <span style={{ fontSize: '2.5rem' }}>🧥</span>
-                {suit.badge && <span className="badge" style={{ fontSize: '10px' }}>{suit.badge}</span>}
-              </div>
-              <div style={{ padding: '0.9rem' }}>
-                <p style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)', marginBottom: 2 }}>{suit.label}</p>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-3)', marginBottom: 6 }}>{suit.category}</p>
-                <div className="flex items-center gap-2">
-                  <span style={{ fontWeight: 700, color: 'var(--accent)', fontSize: '0.95rem' }}>₹{suit.price.toLocaleString()}</span>
-                  <span style={{ textDecoration: 'line-through', fontSize: '0.78rem', color: 'var(--text-3)' }}>₹{suit.originalPrice.toLocaleString()}</span>
-                </div>
-              </div>
-            </Link>
-          ))}
+        <div style={{ background: 'linear-gradient(135deg, #fff7ed, #fdf8f3)', borderRadius: 20, padding: '3rem 2rem', textAlign: 'center', border: '1px solid var(--border)' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🧥</div>
+          <h2 className="section-title" style={{ marginBottom: '0.5rem' }}>Explore Our Full Catalog</h2>
+          <p style={{ color: 'var(--text-2)', fontSize: '0.92rem', marginBottom: '1.5rem', maxWidth: 420, margin: '0 auto 1.5rem' }}>
+            From formal wool blends to casual linens — try every style on your personalised 3D avatar.
+          </p>
+          <Link href="/shop" className="btn-primary" style={{ padding: '0.9rem 2.5rem', fontSize: '1rem', display: 'inline-block' }}>
+            Browse All Suits →
+          </Link>
         </div>
       </section>
 
