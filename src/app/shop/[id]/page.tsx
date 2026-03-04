@@ -144,7 +144,7 @@ export default function ProductPage() {
         return (
             <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
                 <Navbar />
-                <div style={{ maxWidth: 1100, margin: '0 auto', padding: '3rem 1.25rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                <div className="max-w-[1100px] mx-auto px-5 py-12 grid grid-cols-1 md:grid-cols-2 gap-8">
                     {[0, 1].map(i => <div key={i} style={{ background: '#f1f5f9', borderRadius: 16, height: 480, animation: 'pulse 1.5s ease-in-out infinite' }} />)}
                 </div>
             </div>
@@ -184,7 +184,7 @@ export default function ProductPage() {
                 </p>
             </div>
 
-            <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 1.25rem 3rem', display: 'grid', gridTemplateColumns: 'minmax(300px,1fr) 1fr', gap: '2rem', alignItems: 'start' }}>
+            <div className="max-w-[1100px] mx-auto px-5 pb-12 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
                 {/* ── Left: 3D viewer ─────────────────────────────────── */}
                 <div>
@@ -315,7 +315,7 @@ export default function ProductPage() {
                             className="btn-primary" style={{ padding: '1.1rem', fontSize: '1.05rem', textAlign: 'center', borderRadius: 14, opacity: outOfStock ? 0.5 : 1, cursor: outOfStock ? 'not-allowed' : 'pointer' }}>
                             {outOfStock ? 'Out of Stock' : '⚡ Buy Now'}
                         </button>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <button onClick={handleAddCart} disabled={cartLoading || outOfStock}
                                 style={{ padding: '0.85rem', borderRadius: 12, border: '1.5px solid var(--border)', background: cartAdded ? '#f0fdf4' : '#fff', color: cartAdded ? '#15803d' : 'var(--text)', fontWeight: 700, cursor: outOfStock ? 'not-allowed' : 'pointer', fontSize: '0.9rem', transition: 'all 0.2s', opacity: outOfStock ? 0.5 : 1 }}>
                                 {cartAdded ? '✓ Added!' : cartLoading ? '…' : '🛒 Add to Cart'}

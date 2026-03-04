@@ -108,82 +108,86 @@ function InventoryContent() {
                 </div>
             ) : (
                 <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-                    {/* Table header */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 1.2fr 1fr 0.8fr', padding: '0.75rem 1.25rem', background: '#f8fafc', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid #e2e8f0' }}>
-                        <span>Suit</span><span>Price</span><span>Stock</span><span>Status</span><span>Actions</span><span></span>
-                    </div>
-
-                    {filtered.map((suit, idx) => {
-                        const id = suit.id!;
-                        const isSaving = saving === id;
-                        const isDeleting = deleting === id;
-                        const color = CATEGORY_COLORS[suit.category] ?? '#4a5568';
-
-                        return (
-                            <div key={id} style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 1.2fr 1fr 0.8fr', padding: '0.9rem 1.25rem', borderBottom: idx < filtered.length - 1 ? '1px solid #f1f5f9' : 'none', alignItems: 'center', opacity: isDeleting ? 0.4 : 1, transition: 'opacity 0.2s' }}>
-
-                                {/* Suit name + color swatch */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                    <div style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', background: `linear-gradient(160deg, ${suit.color}66, ${suit.color})`, flexShrink: 0, position: 'relative' }}>
-                                        {(suit.bannerUrl || suit.textureUrl) && <img src={suit.bannerUrl || suit.textureUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: suit.bannerUrl ? 1 : 0.7 }} />}
-                                        {(!suit.bannerUrl && !suit.textureUrl) && <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🧥</span>}
-                                    </div>
-                                    <div>
-                                        <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.88rem' }}>{suit.name}</div>
-                                        <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{suit.category} · {suit.sizes?.length || 0} Sizes</div>
-                                    </div>
-                                </div>
-
-                                {/* Price */}
-                                <div>
-                                    <div style={{ fontWeight: 700, color: '#10b981', fontSize: '0.9rem' }}>₹{suit.price.toLocaleString()}</div>
-                                    {suit.originalPrice > suit.price && <div style={{ fontSize: '0.72rem', color: '#94a3b8', textDecoration: 'line-through' }}>₹{suit.originalPrice.toLocaleString()}</div>}
-                                </div>
-
-                                {/* Stock */}
-                                <div style={{ display: 'flex', gap: 4 }}>
-                                    <input type="number" min={0} value={editStock[id] ?? suit.stock}
-                                        onChange={e => setEditStock(p => ({ ...p, [id]: e.target.value }))}
-                                        onKeyDown={e => e.key === 'Enter' && handleStockSave(id)}
-                                        style={{ width: 60, padding: '0.3rem 0.4rem', borderRadius: 6, border: `1px solid ${suit.stock < 10 ? '#fca5a5' : '#e2e8f0'}`, fontSize: '0.82rem', outline: 'none' }} />
-                                    <button onClick={() => handleStockSave(id)} disabled={isSaving}
-                                        style={{ padding: '0.3rem 0.5rem', borderRadius: 6, background: '#6366f1', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700 }}>
-                                        {isSaving ? '…' : '✓'}
-                                    </button>
-                                </div>
-
-                                {/* Status badge */}
-                                <div>
-                                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: suit.isActive ? '#15803d' : '#94a3b8', background: suit.isActive ? '#dcfce7' : '#f1f5f9', padding: '3px 10px', borderRadius: 99 }}>
-                                        {suit.isActive ? '● Active' : '○ Inactive'}
-                                    </span>
-                                    {suit.stock < 10 && suit.isActive && (
-                                        <div style={{ fontSize: '0.65rem', color: '#dc2626', marginTop: 2 }}>⚠ Low stock</div>
-                                    )}
-                                </div>
-
-                                {/* Actions */}
-                                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                                    <Link href={`/admin/inventory/${id}`}
-                                        style={{ padding: '0.35rem 0.7rem', borderRadius: 7, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#475569', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>
-                                        Edit
-                                    </Link>
-                                    <button onClick={() => handleToggleActive(suit)}
-                                        style={{ padding: '0.35rem 0.7rem', borderRadius: 7, border: `1px solid ${suit.isActive ? '#fca5a5' : '#bbf7d0'}`, background: suit.isActive ? '#fef2f2' : '#f0fdf4', color: suit.isActive ? '#dc2626' : '#15803d', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>
-                                        {suit.isActive ? 'Hide' : 'Show'}
-                                    </button>
-                                </div>
-
-                                {/* Delete */}
-                                <div>
-                                    <button onClick={() => handleDelete(id, suit.name)} disabled={isDeleting}
-                                        style={{ padding: '0.35rem 0.5rem', borderRadius: 7, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', fontSize: '0.75rem', cursor: 'pointer' }}>
-                                        🗑
-                                    </button>
-                                </div>
+                    <div className="overflow-x-auto">
+                        <div style={{ minWidth: 800 }}>
+                            {/* Table header */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 1.2fr 1fr 0.8fr', padding: '0.75rem 1.25rem', background: '#f8fafc', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid #e2e8f0' }}>
+                                <span>Suit</span><span>Price</span><span>Stock</span><span>Status</span><span>Actions</span><span></span>
                             </div>
-                        );
-                    })}
+
+                            {filtered.map((suit, idx) => {
+                                const id = suit.id!;
+                                const isSaving = saving === id;
+                                const isDeleting = deleting === id;
+                                const color = CATEGORY_COLORS[suit.category] ?? '#4a5568';
+
+                                return (
+                                    <div key={id} style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 1.2fr 1fr 0.8fr', padding: '0.9rem 1.25rem', borderBottom: idx < filtered.length - 1 ? '1px solid #f1f5f9' : 'none', alignItems: 'center', opacity: isDeleting ? 0.4 : 1, transition: 'opacity 0.2s' }}>
+
+                                        {/* Suit name + color swatch */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                            <div style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', background: `linear-gradient(160deg, ${suit.color}66, ${suit.color})`, flexShrink: 0, position: 'relative' }}>
+                                                {(suit.bannerUrl || suit.textureUrl) && <img src={suit.bannerUrl || suit.textureUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: suit.bannerUrl ? 1 : 0.7 }} />}
+                                                {(!suit.bannerUrl && !suit.textureUrl) && <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🧥</span>}
+                                            </div>
+                                            <div>
+                                                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.88rem' }}>{suit.name}</div>
+                                                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{suit.category} · {suit.sizes?.length || 0} Sizes</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Price */}
+                                        <div>
+                                            <div style={{ fontWeight: 700, color: '#10b981', fontSize: '0.9rem' }}>₹{suit.price.toLocaleString()}</div>
+                                            {suit.originalPrice > suit.price && <div style={{ fontSize: '0.72rem', color: '#94a3b8', textDecoration: 'line-through' }}>₹{suit.originalPrice.toLocaleString()}</div>}
+                                        </div>
+
+                                        {/* Stock */}
+                                        <div style={{ display: 'flex', gap: 4 }}>
+                                            <input type="number" min={0} value={editStock[id] ?? suit.stock}
+                                                onChange={e => setEditStock(p => ({ ...p, [id]: e.target.value }))}
+                                                onKeyDown={e => e.key === 'Enter' && handleStockSave(id)}
+                                                style={{ width: 60, padding: '0.3rem 0.4rem', borderRadius: 6, border: `1px solid ${suit.stock < 10 ? '#fca5a5' : '#e2e8f0'}`, fontSize: '0.82rem', outline: 'none' }} />
+                                            <button onClick={() => handleStockSave(id)} disabled={isSaving}
+                                                style={{ padding: '0.3rem 0.5rem', borderRadius: 6, background: '#6366f1', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700 }}>
+                                                {isSaving ? '…' : '✓'}
+                                            </button>
+                                        </div>
+
+                                        {/* Status badge */}
+                                        <div>
+                                            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: suit.isActive ? '#15803d' : '#94a3b8', background: suit.isActive ? '#dcfce7' : '#f1f5f9', padding: '3px 10px', borderRadius: 99 }}>
+                                                {suit.isActive ? '● Active' : '○ Inactive'}
+                                            </span>
+                                            {suit.stock < 10 && suit.isActive && (
+                                                <div style={{ fontSize: '0.65rem', color: '#dc2626', marginTop: 2 }}>⚠ Low stock</div>
+                                            )}
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                                            <Link href={`/admin/inventory/${id}`}
+                                                style={{ padding: '0.35rem 0.7rem', borderRadius: 7, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#475569', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>
+                                                Edit
+                                            </Link>
+                                            <button onClick={() => handleToggleActive(suit)}
+                                                style={{ padding: '0.35rem 0.7rem', borderRadius: 7, border: `1px solid ${suit.isActive ? '#fca5a5' : '#bbf7d0'}`, background: suit.isActive ? '#fef2f2' : '#f0fdf4', color: suit.isActive ? '#dc2626' : '#15803d', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>
+                                                {suit.isActive ? 'Hide' : 'Show'}
+                                            </button>
+                                        </div>
+
+                                        {/* Delete */}
+                                        <div>
+                                            <button onClick={() => handleDelete(id, suit.name)} disabled={isDeleting}
+                                                style={{ padding: '0.35rem 0.5rem', borderRadius: 7, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', fontSize: '0.75rem', cursor: 'pointer' }}>
+                                                🗑
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

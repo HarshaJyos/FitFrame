@@ -106,6 +106,7 @@ export default function Navbar() {
                                 <div style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', border: '1px solid var(--border)', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', minWidth: 160, overflow: 'hidden', zIndex: 100 }}
                                     onMouseLeave={() => setMenuOpen(false)}>
                                     <Link href="/account" style={{ display: 'block', padding: '0.7rem 1rem', fontSize: '0.85rem', color: 'var(--text)', fontWeight: 500 }} onClick={() => setMenuOpen(false)}>👤 My Account</Link>
+                                    <Link href="/shop" style={{ display: 'block', padding: '0.7rem 1rem', fontSize: '0.85rem', color: 'var(--text)', fontWeight: 500 }} onClick={() => setMenuOpen(false)}>🧥 Shop</Link>
                                     <Link href="/cart" style={{ display: 'block', padding: '0.7rem 1rem', fontSize: '0.85rem', color: 'var(--text)', fontWeight: 500 }} onClick={() => setMenuOpen(false)}>🛒 Cart</Link>
                                     <Link href="/wishlist" style={{ display: 'block', padding: '0.7rem 1rem', fontSize: '0.85rem', color: 'var(--text)', fontWeight: 500 }} onClick={() => setMenuOpen(false)}>❤️ Wishlist</Link>
                                     <div style={{ height: 1, background: 'var(--border)', margin: '0.25rem 0' }} />

@@ -62,38 +62,42 @@ function OrdersContent() {
                 </div>
             ) : (
                 <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0' }}>
-                    {/* Table header */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr 1.5fr 1fr 0.5fr', gap: 0, background: '#f8fafc', padding: '0.75rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid #e2e8f0' }}>
-                        <span>Customer</span><span>Items</span><span>Amount</span><span>Status</span><span>Date</span><span></span>
-                    </div>
-                    {filtered.map(order => {
-                        const statusCfg = STATUS_CONFIG[order.shipmentStatus ?? 'placed'];
-                        const date = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-IN') : '—';
-                        return (
-                            <div key={order.id} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr 1.5fr 1fr 0.5fr', gap: 0, padding: '0.85rem 1.25rem', borderBottom: '1px solid #f1f5f9', alignItems: 'center', fontSize: '0.85rem' }}>
-                                <div>
-                                    <div style={{ fontWeight: 600, color: '#1e293b' }}>{order.shippingAddress?.name ?? '—'}</div>
-                                    <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{order.shippingAddress?.city ?? '—'}</div>
-                                </div>
-                                <div style={{ color: '#475569', fontSize: '0.8rem' }}>
-                                    {order.items?.map(i => i.label).join(', ') ?? '—'}
-                                </div>
-                                <div style={{ fontWeight: 700, color: '#10b981' }}>₹{order.amount?.toLocaleString()}</div>
-                                <div>
-                                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: statusCfg.color, background: statusCfg.bg, padding: '3px 10px', borderRadius: 99, whiteSpace: 'nowrap' }}>
-                                        {statusCfg.label}
-                                    </span>
-                                </div>
-                                <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>{date}</div>
-                                <div>
-                                    <Link href={`/admin/orders/${order.id}?uid=${order.userId}`}
-                                        style={{ fontSize: '0.78rem', color: '#6366f1', fontWeight: 600, textDecoration: 'none' }}>
-                                        View →
-                                    </Link>
-                                </div>
+                    <div className="overflow-x-auto">
+                        <div style={{ minWidth: 800 }}>
+                            {/* Table header */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr 1.5fr 1fr 0.5fr', gap: 0, background: '#f8fafc', padding: '0.75rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid #e2e8f0' }}>
+                                <span>Customer</span><span>Items</span><span>Amount</span><span>Status</span><span>Date</span><span></span>
                             </div>
-                        );
-                    })}
+                            {filtered.map(order => {
+                                const statusCfg = STATUS_CONFIG[order.shipmentStatus ?? 'placed'];
+                                const date = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-IN') : '—';
+                                return (
+                                    <div key={order.id} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr 1.5fr 1fr 0.5fr', gap: 0, padding: '0.85rem 1.25rem', borderBottom: '1px solid #f1f5f9', alignItems: 'center', fontSize: '0.85rem' }}>
+                                        <div>
+                                            <div style={{ fontWeight: 600, color: '#1e293b' }}>{order.shippingAddress?.name ?? '—'}</div>
+                                            <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{order.shippingAddress?.city ?? '—'}</div>
+                                        </div>
+                                        <div style={{ color: '#475569', fontSize: '0.8rem' }}>
+                                            {order.items?.map(i => i.label).join(', ') ?? '—'}
+                                        </div>
+                                        <div style={{ fontWeight: 700, color: '#10b981' }}>₹{order.amount?.toLocaleString()}</div>
+                                        <div>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: statusCfg.color, background: statusCfg.bg, padding: '3px 10px', borderRadius: 99, whiteSpace: 'nowrap' }}>
+                                                {statusCfg.label}
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>{date}</div>
+                                        <div>
+                                            <Link href={`/admin/orders/${order.id}?uid=${order.userId}`}
+                                                style={{ fontSize: '0.78rem', color: '#6366f1', fontWeight: 600, textDecoration: 'none' }}>
+                                                View →
+                                            </Link>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

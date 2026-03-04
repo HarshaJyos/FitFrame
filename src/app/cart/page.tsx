@@ -126,7 +126,7 @@ function CartContent() {
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {items.map(item => (
-                            <div key={item.id} className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', border: item.id && selectedIds.has(item.id) ? '2px solid var(--accent)' : '2px solid transparent' }}>
+                            <div key={item.id} className={`card flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-4 ${item.id && selectedIds.has(item.id) ? 'border-2 border-[var(--accent)]' : 'border-2 border-transparent'}`}>
                                 <input
                                     type="checkbox"
                                     checked={item.id ? selectedIds.has(item.id) : false}
@@ -140,7 +140,7 @@ function CartContent() {
                                         <span>🧥</span>
                                     )}
                                 </div>
-                                <div style={{ flex: 1 }}>
+                                <div style={{ flex: '1 1 120px' }}>
                                     <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>{item.label}</p>
                                     <p style={{ fontSize: '0.82rem', color: 'var(--text-3)', marginBottom: 6 }}>₹{item.price.toLocaleString()} each</p>
                                     <div className="flex items-center gap-2">
@@ -149,9 +149,9 @@ function CartContent() {
                                         <button onClick={() => handleQty(item, 1)} style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid var(--border)', background: '#fff', cursor: 'pointer', fontWeight: 700 }}>+</button>
                                     </div>
                                 </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <p style={{ fontWeight: 800, color: 'var(--accent)', fontSize: '1rem' }}>₹{(item.price * item.quantity).toLocaleString()}</p>
-                                    <button onClick={() => handleRemove(item)} style={{ marginTop: 6, fontSize: '0.78rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer' }}>Remove to Wishlist</button>
+                                <div className="w-full sm:w-auto text-left sm:text-right mt-2 sm:mt-0 flex gap-4 sm:flex-col sm:gap-0 items-center sm:items-end justify-between">
+                                    <p style={{ fontWeight: 800, color: 'var(--accent)', fontSize: '1.05rem' }}>₹{(item.price * item.quantity).toLocaleString()}</p>
+                                    <button onClick={() => handleRemove(item)} style={{ marginTop: 6, fontSize: '0.8rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Remove to Wishlist</button>
                                 </div>
                             </div>
                         ))}

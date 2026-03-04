@@ -95,7 +95,7 @@ export default function ShopPage() {
             {/* Grid */}
             <div className="max-w-6xl mx-auto px-5 py-8">
                 {loading && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.25rem' }}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                         {[...Array(8)].map((_, i) => (
                             <div key={i} style={{ borderRadius: 14, overflow: 'hidden', background: '#fff', border: '1px solid var(--border)' }}>
                                 <div style={{ height: 180, background: '#f1f5f9', animation: 'pulse 1.5s ease-in-out infinite' }} />
@@ -125,7 +125,7 @@ export default function ShopPage() {
                 )}
 
                 {!loading && !error && displayed.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                         {displayed.map(suit => {
                             const disc = suit.originalPrice > suit.price
                                 ? Math.round((1 - suit.price / suit.originalPrice) * 100)
