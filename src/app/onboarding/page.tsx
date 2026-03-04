@@ -12,12 +12,14 @@ import Navbar from '@/components/Navbar';
 import { BodyType } from '@/utils/modelSelector';
 
 interface MeasData {
+    gender: 'male' | 'female';
+    age: number;
     height: number; weight: number;
     chest: number; waist: number; hip: number;
     bodyType: BodyType;
 }
 
-const DEFAULTS: MeasData = { height: 175, weight: 72, chest: 95, waist: 82, hip: 96, bodyType: 'average' };
+const DEFAULTS: MeasData = { gender: 'male', age: 30, height: 175, weight: 72, chest: 95, waist: 82, hip: 96, bodyType: 'average' };
 const STEPS = ['Measurements', 'Body Type', 'Ready'];
 
 function OnboardingContent() {
@@ -42,19 +44,25 @@ function OnboardingContent() {
         if (!user) return;
         setSaving(true);
         const bmiFinal = bmi ?? 22;
-        const model = selectModel(bmiFinal, data.bodyType);
         const sizes = recommendSize(data);
 
-        // Extract model number (e.g. "male_m05" → 5)
-        const modelNumberMatch = model.match(/male_m0?(\d+)\.gltf/);
-        const selectedModelNumber = modelNumberMatch ? parseInt(modelNumberMatch[1], 10) : 5;
-
+        // Map to standard FitFrame profile format for SMPL
         const profileData = {
-            measurements: data,
-            selectedModel: model,
-            selectedModelNumber,
+            gender: data.gender,
+            measurements: {
+                height: data.height,
+                weight: data.weight,
+                chest: data.chest,
+                waist: data.waist,
+                hip: data.hip,
+                age: data.age,
+                bodyType: data.bodyType
+            },
             sizes,
             bmi: bmiFinal,
+            // Provide a fallback model path just in case, but components will use SMPL
+            selectedModel: data.gender === 'male' ? '/models/male.gltf' : '/models/Female_2.gltf',
+            selectedModelNumber: 1
         };
 
         // Save to localStorage (for guest compat)
@@ -94,15 +102,36 @@ function OnboardingContent() {
                             <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: 4 }}>Your Measurements</h2>
                             <p style={{ color: 'var(--text-2)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Used to select the best-matching 3D body model for you.</p>
 
+                            <div className="grid grid-cols-2 gap-3 mb-5">
+                                <div className="col-span-2">
+                                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: 5 }}>Biological Sex</label>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        {(['male', 'female'] as const).map(g => (
+                                            <button key={g} onClick={() => set('gender', g)}
+                                                style={{
+                                                    flex: 1, padding: '0.6rem', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem',
+                                                    background: data.gender === g ? 'var(--accent)' : 'var(--bg)',
+                                                    color: data.gender === g ? '#fff' : 'var(--text-2)',
+                                                    border: `1px solid ${data.gender === g ? 'var(--accent)' : 'var(--border)'}`,
+                                                    transition: 'all 0.15s'
+                                                }}>
+                                                {g.charAt(0).toUpperCase() + g.slice(1)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-2 gap-3">
                                 {([
+                                    ['age', 'Age (yrs)', 10, 100],
                                     ['height', 'Height (cm)', 140, 220],
                                     ['weight', 'Weight (kg)', 40, 200],
                                     ['chest', 'Chest (cm)', 60, 150],
                                     ['waist', 'Waist (cm)', 50, 140],
                                     ['hip', 'Hip (cm)', 60, 150],
                                 ] as [keyof MeasData, string, number, number][]).map(([field, label, min, max]) => (
-                                    <div key={field} className={field === 'height' || field === 'weight' ? 'col-span-2' : ''}>
+                                    <div key={field} className={(field === 'height' || field === 'weight' || field === 'age') ? 'col-span-2' : ''}>
                                         <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: 5 }}>{label}</label>
                                         <input type="number" min={min} max={max} value={(data[field] as number) || ''}
                                             onChange={e => set(field, e.target.value)} className="input" />

@@ -53,6 +53,7 @@ export interface AvatarViewer3DHandle {
 interface AvatarViewer3DProps {
     modelPath: string;
     texturePath: string;          // Cloudinary URL (or any URL)
+    blendshapes?: number[];       // New SMPL morph target values
     onLoaded?: () => void;
     onProgress?: (pct: number) => void;
     viewerRef?: React.MutableRefObject<AvatarViewer3DHandle | null>;
@@ -61,6 +62,7 @@ interface AvatarViewer3DProps {
 export default function AvatarViewer3D({
     modelPath,
     texturePath,
+    blendshapes,
     onLoaded,
     onProgress,
     viewerRef,
@@ -74,6 +76,7 @@ export default function AvatarViewer3D({
     onLoadedRef.current = onLoaded;
     const onProgressRef = useRef(onProgress);
     onProgressRef.current = onProgress;
+    const modelRef = useRef<THREE.Group | null>(null);
 
     // Expose texture swap via forwarded handle ref
     const swapSuitTexture = useCallback((url: string) => {
@@ -164,7 +167,6 @@ export default function AvatarViewer3D({
 
         // ─── Load model ──────────────────────────────────────────────────────────
         const loader = new GLTFLoader();
-        let model: THREE.Group | null = null;
 
         // Capture current texturePath at load time
         const initialSuitUrl = texturePath;
@@ -172,13 +174,20 @@ export default function AvatarViewer3D({
         loader.load(
             modelPath,
             (gltf) => {
-                model = gltf.scene;
+                modelRef.current = gltf.scene;
                 suitMatRefs.current = [];
 
-                model.traverse((child) => {
+                gltf.scene.traverse((child) => {
                     if (!(child as THREE.Mesh).isMesh) return;
                     const mesh = child as THREE.Mesh;
                     fixMeshMaterial(mesh);
+
+                    // Apply initial SMPL blendshapes if available
+                    if (blendshapes && mesh.morphTargetInfluences) {
+                        for (let i = 0; i < Math.min(blendshapes.length, mesh.morphTargetInfluences.length); i++) {
+                            mesh.morphTargetInfluences[i] = blendshapes[i] ?? 0;
+                        }
+                    }
 
                     // Find the casualsuit material(s) — this is the swappable jacket
                     const mats = Array.isArray(mesh.material)
@@ -196,21 +205,21 @@ export default function AvatarViewer3D({
                     });
                 });
 
-                scene.add(model);
+                scene.add(gltf.scene);
 
                 // IMPORTANT: force matrix update so Box3 sees correct world positions
                 // (skinned meshes / nodes with rotation quaternions need this)
-                model.updateMatrixWorld(true);
+                gltf.scene.updateMatrixWorld(true);
 
                 // Auto-fit camera from bounding box
-                const box = new THREE.Box3().setFromObject(model);
+                const box = new THREE.Box3().setFromObject(gltf.scene);
                 const size = box.getSize(new THREE.Vector3());
                 const center = box.getCenter(new THREE.Vector3());
 
                 console.log('[AvatarViewer3D] bbox size:', size, 'center:', center);
 
                 // Place feet on ground (y=0), centre x/z on origin
-                model.position.set(-center.x, -box.min.y, -center.z);
+                gltf.scene.position.set(-center.x, -box.min.y, -center.z);
 
                 const height = size.y > 0 ? size.y : 10; // fallback if bbox empty
                 const fovRad = camera.fov * (Math.PI / 180);
@@ -262,9 +271,9 @@ export default function AvatarViewer3D({
             controls.dispose();
             renderer.dispose();
             if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
-            if (model) {
-                scene.remove(model);
-                model.traverse((c) => {
+            if (modelRef.current) {
+                scene.remove(modelRef.current);
+                modelRef.current.traverse((c) => {
                     if ((c as THREE.Mesh).isMesh) {
                         (c as THREE.Mesh).geometry?.dispose();
                     }
@@ -280,6 +289,19 @@ export default function AvatarViewer3D({
         if (suitMatRefs.current.length === 0) return;
         swapSuitTexture(texturePath);
     }, [texturePath, swapSuitTexture]);
+
+    // Apply live blendshape changes if measurements update while viewing
+    useEffect(() => {
+        if (!modelRef.current || !blendshapes) return;
+        modelRef.current.traverse((child) => {
+            const mesh = child as THREE.Mesh;
+            if (mesh.isMesh && mesh.morphTargetInfluences) {
+                for (let i = 0; i < Math.min(blendshapes.length, mesh.morphTargetInfluences.length); i++) {
+                    mesh.morphTargetInfluences[i] = blendshapes[i] ?? 0;
+                }
+            }
+        });
+    }, [blendshapes]);
 
     return <div ref={mountRef} style={{ width: '100%', height: '100%' }} />;
 }

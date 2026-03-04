@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { MODEL_BASE, recommendSize } from '@/utils/modelSelector';
+import { calculateSMPLBlendshapes } from '@/utils/smplCalculator';
 import type { AvatarViewer3DHandle } from '@/components/AvatarViewer3D';
 import { useAuth } from '@/context/AuthContext';
 import { getUserProfile, addToCart, toggleWishlist } from '@/lib/firestore';
@@ -23,7 +24,8 @@ const AvatarViewer3D = dynamic(() => import('@/components/AvatarViewer3D'), {
 });
 
 interface StoredUser {
-    measurements: { height: number; weight: number; chest: number; waist: number; hip: number; bodyType: string };
+    gender: 'male' | 'female';
+    measurements: { age?: number; height: number; weight: number; chest: number; waist: number; hip: number; bodyType: string };
     selectedModel: string;
     sizes: { shirt: string; pants: string; confidence: number };
     bmi: number;
@@ -68,7 +70,8 @@ export default function ProductPage() {
                     const profile = await getUserProfile(user.uid);
                     if (profile?.measurements && profile?.selectedModel) {
                         setUserData({
-                            measurements: profile.measurements,
+                            gender: profile.gender || 'male',
+                            measurements: profile.measurements as any,
                             selectedModel: profile.selectedModel,
                             sizes: profile.sizes ?? recommendSize(profile.measurements),
                             bmi: profile.bmi ?? 22,
@@ -131,6 +134,8 @@ export default function ProductPage() {
     const modelPath = userData?.selectedModel
         ? userData.selectedModel
         : `${MODEL_BASE}/male_m05.gltf`;
+
+    const blendshapes = userData ? calculateSMPLBlendshapes(userData.measurements as any, userData.gender) : undefined;
 
     const sizes = userData?.sizes
         ?? (userData?.measurements ? recommendSize(userData.measurements) : { shirt: 'M', pants: '32"', confidence: 70 });
@@ -204,6 +209,7 @@ export default function ProductPage() {
                                 viewerRef={viewerRef}
                                 modelPath={modelPath}
                                 texturePath={suit.textureUrl}
+                                blendshapes={blendshapes}
                                 onLoaded={() => setModelLoaded(true)}
                                 onProgress={setLoadPct}
                             />

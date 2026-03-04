@@ -12,7 +12,9 @@ export interface UserProfile {
     displayName: string;
     email: string;
     photoURL?: string;
+    gender?: 'male' | 'female';
     measurements?: {
+        age?: number;
         height: number; weight: number;
         chest: number; waist: number; hip: number;
         bodyType: string;
