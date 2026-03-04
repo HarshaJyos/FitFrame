@@ -25,7 +25,7 @@ const AvatarViewer3D = dynamic(() => import('@/components/AvatarViewer3D'), {
 
 interface StoredUser {
     gender: 'male' | 'female';
-    measurements: { age?: number; height: number; weight: number; chest: number; waist: number; hip: number; bodyType: string };
+    measurements: { age?: number; height: number; weight: number; chest: number; waist: number; hip: number; bodyType?: string };
     selectedModel: string;
     sizes: { shirt: string; pants: string; confidence: number };
     bmi: number;

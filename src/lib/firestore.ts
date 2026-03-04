@@ -17,7 +17,7 @@ export interface UserProfile {
         age?: number;
         height: number; weight: number;
         chest: number; waist: number; hip: number;
-        bodyType: string;
+        bodyType?: string;
     };
     selectedModel?: string;
     selectedModelNumber?: number;

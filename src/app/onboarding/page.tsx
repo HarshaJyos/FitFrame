@@ -16,11 +16,10 @@ interface MeasData {
     age: number;
     height: number; weight: number;
     chest: number; waist: number; hip: number;
-    bodyType: BodyType;
 }
 
-const DEFAULTS: MeasData = { gender: 'male', age: 30, height: 175, weight: 72, chest: 95, waist: 82, hip: 96, bodyType: 'average' };
-const STEPS = ['Measurements', 'Body Type', 'Ready'];
+const DEFAULTS: MeasData = { gender: 'male', age: 30, height: 175, weight: 72, chest: 95, waist: 82, hip: 96 };
+const STEPS = ['Measurements', 'Ready'];
 
 function OnboardingContent() {
     const router = useRouter();
@@ -55,8 +54,7 @@ function OnboardingContent() {
                 chest: data.chest,
                 waist: data.waist,
                 hip: data.hip,
-                age: data.age,
-                bodyType: data.bodyType
+                age: data.age
             },
             sizes,
             bmi: bmiFinal,
@@ -154,37 +152,8 @@ function OnboardingContent() {
                         </div>
                     )}
 
-                    {/* ── Step 1: Body Type */}
-                    {step === 1 && (
-                        <div className="anim-up">
-                            <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: 4 }}>Body Type</h2>
-                            <p style={{ color: 'var(--text-2)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Helps refine your avatar&apos;s build and proportions.</p>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                {([
-                                    ['slim', '🏃', 'Slim', 'Lean build'],
-                                    ['average', '🧍', 'Average', 'Standard'],
-                                    ['muscular', '💪', 'Athletic', 'Broad build'],
-                                    ['heavy', '🐻', 'Softer / Heavy', 'Fuller build']
-                                ] as [BodyType, string, string, string][]).map(([type, icon, label, sub]) => (
-                                    <button key={type} onClick={() => set('bodyType', type)}
-                                        style={{ padding: '1rem 0.5rem', borderRadius: 12, textAlign: 'center', border: `2px solid ${data.bodyType === type ? 'var(--accent)' : 'var(--border)'}`, background: data.bodyType === type ? 'var(--accent-lt)' : 'var(--bg-card)', cursor: 'pointer', transition: 'all 0.15s' }}>
-                                        <div style={{ fontSize: '1.8rem', marginBottom: 4 }}>{icon}</div>
-                                        <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text)' }}>{label}</div>
-                                        <div style={{ fontSize: '0.72rem', color: 'var(--text-3)', marginTop: 2 }}>{sub}</div>
-                                    </button>
-                                ))}
-                            </div>
-
-                            <div className="flex gap-3 mt-5">
-                                <button onClick={() => setStep(0)} className="btn-ghost flex-1" style={{ textAlign: 'center' }}>← Back</button>
-                                <button onClick={() => setStep(2)} className="btn-primary flex-1" style={{ textAlign: 'center' }}>Next →</button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── Step 2: Summary */}
-                    {step === 2 && (() => {
+                    {/* ── Step 1: Summary */}
+                    {step === 1 && (() => {
                         const sizes = recommendSize(data);
                         return (
                             <div className="anim-up">
@@ -193,7 +162,8 @@ function OnboardingContent() {
 
                                 <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)', marginBottom: '1.25rem' }}>
                                     {[
-                                        ['Body Type', data.bodyType.charAt(0).toUpperCase() + data.bodyType.slice(1)],
+                                        ['Biological Sex', data.gender.charAt(0).toUpperCase() + data.gender.slice(1)],
+                                        ['Age', `${data.age} yrs`],
                                         ['Height / Weight', `${data.height} cm · ${data.weight} kg`],
                                         bmi ? ['BMI', `${bmi} (${getBMICategory(bmi)})`] : null,
                                         ['Jacket / Shirt', sizes.shirt],
@@ -208,7 +178,7 @@ function OnboardingContent() {
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <button onClick={() => setStep(1)} className="btn-ghost" style={{ flex: '0 0 auto', padding: '0.75rem 1.25rem' }}>← Back</button>
+                                    <button onClick={() => setStep(0)} className="btn-ghost" style={{ flex: '0 0 auto', padding: '0.75rem 1.25rem' }}>← Back</button>
                                     <button onClick={finish} disabled={saving} className="btn-primary flex-1" style={{ textAlign: 'center' }}>
                                         {saving ? 'Saving…' : '🛍️ Start Shopping'}
                                     </button>

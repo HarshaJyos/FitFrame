@@ -71,7 +71,6 @@ function AccountContent() {
                                         ['Chest', `${profile.measurements.chest} cm`],
                                         ['Waist', `${profile.measurements.waist} cm`],
                                         ['BMI', `${profile.bmi}`],
-                                        ['Body Type', profile.measurements.bodyType],
                                     ].map(([label, val]) => (
                                         <div key={label} style={{ background: 'var(--bg)', borderRadius: 10, padding: '0.75rem', border: '1px solid var(--border)' }}>
                                             <p style={{ fontSize: '0.72rem', color: 'var(--text-3)', marginBottom: 2 }}>{label}</p>

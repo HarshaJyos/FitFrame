@@ -42,8 +42,8 @@ export interface SizeResult {
     shirt: string; pants: string; confidence: number;
 }
 
-export function recommendSize(m: { chest: number; waist: number }): SizeResult {
-    const { chest, waist } = m;
+export function recommendSize(m: { chest: number; waist: number; hip: number }): SizeResult {
+    const { chest, waist, hip } = m;
     let shirt = 'M';
     if (chest < 84) shirt = 'XS';
     else if (chest < 90) shirt = 'S';
@@ -52,13 +52,15 @@ export function recommendSize(m: { chest: number; waist: number }): SizeResult {
     else if (chest < 112) shirt = 'XL';
     else shirt = 'XXL';
 
+    // Use the larger of waist or hip-equivalent to determine pant size
+    const effectiveWaist = Math.max(waist, hip - 12);
     let pants = '32"';
-    if (waist < 68) pants = '28"';
-    else if (waist < 74) pants = '30"';
-    else if (waist < 80) pants = '32"';
-    else if (waist < 86) pants = '34"';
-    else if (waist < 94) pants = '36"';
+    if (effectiveWaist < 68) pants = '28"';
+    else if (effectiveWaist < 74) pants = '30"';
+    else if (effectiveWaist < 80) pants = '32"';
+    else if (effectiveWaist < 86) pants = '34"';
+    else if (effectiveWaist < 94) pants = '36"';
     else pants = '38"+';
 
-    return { shirt, pants, confidence: chest > 0 && waist > 0 ? 92 : 70 };
+    return { shirt, pants, confidence: chest > 0 && waist > 0 && hip > 0 ? 92 : 70 };
 }
