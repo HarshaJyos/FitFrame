@@ -141,45 +141,41 @@ function calculateFemaleShapeKeys(m: BasicMeasurements): number[] {
 
     const b = new Array(10).fill(0);
 
-    // ── shape000: HEIGHT & SQUASH (INVERTED) ─────────────────────────────────
-    // VISUALLY VERIFIED: Positive = Short & Thick, Negative = Tall & Thin
-    b[0] = -dH;
+    // ── shape000: HEIGHT ─────────────────────────────────────────────────────
+    // BUG FIX: Reversed as requested. Positive slope now controls height directly.
+    b[0] = dH;
 
     // ── shape001: OVERALL WEIGHT / FAT (INVERTED) ────────────────────────────
-    // VISUALLY VERIFIED: Negative = Fatter, Positive = Thinner
-    // Counteracts b[0] scale squash by distributing raw mass into 'fatness'.
-    b[1] = -(dWt * 0.45) - (dHip * 0.35) - (dW * 0.20) - (dAge * 0.10);
+    // Negative = Fatter, Positive = Thinner
+    b[1] = -(dWt * 0.45) - (dAge * 0.10);
 
     // ── shape002: TORSO PROPORTION ───────────────────────────────────────────
-    // VISUALLY VERIFIED: Positive = Longer torso & neck
     b[2] = dH * 0.35;
 
-    // ── shape003: BUST VOLUME / CURVES ───────────────────────────────────────
-    // VISUALLY VERIFIED: Positive = Larger breasts & volume
-    b[3] = (dC * 0.70) - (dW * 0.30) + (dWt * 0.15) - (dAge * 0.15);
+    // ── shape003: HIPS VOLUME (User verified: Old Chest formula controlled Hips)
+    // BUG FIX: Swap to Hip variables
+    b[3] = (dHip * 0.70) + (dWt * 0.15) - (dC * 0.10);
 
-    // ── shape004: PUFFY BELLY / WAIST VOLUME ─────────────────────────────────
-    // VISUALLY VERIFIED: Positive = Larger belly/protruding midsection
-    b[4] = (dW * 0.65) + (dWt * 0.25) - (dC * 0.20) + (dAge * 0.25);
+    // ── shape004: CHEST / BUST VOLUME (User verified: Old Waist formula controlled Chest)
+    // BUG FIX: Swap to Chest variables
+    b[4] = (dC * 0.65) + (dWt * 0.25) + (dAge * 0.25);
 
-    // ── shape005: HIPS & THIGHS (PEAR SHAPE) ─────────────────────────────────
-    // VISUALLY VERIFIED: Positive = Wider hips and thicker thighs
-    b[5] = (dHip * 0.75) + (dWt * 0.15) - (dC * 0.10);
+    // ── shape005: LOWER UPPER WEIGHT (User verified: Old Hip formula controlled Weight)
+    // BUG FIX: Swap to Weight variables
+    b[5] = (dWt * 0.75) + (dAge * 0.15);
 
-    // ── shape006: RECTANGLE vs HOURGLASS SHAPE ───────────────────────────────
-    // VISUALLY VERIFIED: Positive = Thicker boxy torso, Negative = Extreme Hourglass
+    // ── shape006: WAIST / HOURGLASS SHAPE (New dedicated Waist formula) ──────
+    // Positive = Thicker boxy torso, Negative = Extreme Hourglass
     b[6] = (dW * 0.55) - (dC * 0.35) - (dHip * 0.25) + (dAge * 0.15);
 
     // ── shape007: BREAST SAG / VERTICAL OFFSETS ──────────────────────────────
-    // VISUALLY VERIFIED: Positive = Breasts sag / lower
     b[7] = (dC * 0.45) + (dAge * 0.40) + (dWt * 0.25);
 
-    // ── shape008: MINIMAL LOVE HANDLES ───────────────────────────────────────
-    // VISUALLY VERIFIED: Positive = Wider lower torso around waist/hips
+    // ── shape008: WAIST LOVE HANDLES ─────────────────────────────────────────
+    // Positive = Wider lower torso around waist/hips
     b[8] = (dW * 0.45) + (dHip * 0.25);
 
     // ── shape009: BREAST SEPARATION (CLEAVAGE GAP) ───────────────────────────
-    // VISUALLY VERIFIED: Positive = Breasts pushed apart / wider chest base
     b[9] = (dC * 0.55) + (dWt * 0.15) - (dH * 0.15);
 
     // Final hard clamp to [−5, 5]
