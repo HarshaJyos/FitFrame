@@ -390,6 +390,30 @@ export default function ProductPage() {
                 </div>
             </div>
 
+            {/* ── Related Products ────────────────────────────────────────── */}
+            {relatedSuits.length > 0 && (
+                <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '4rem 1.25rem' }}>
+                    <div className="max-w-[1100px] mx-auto">
+                        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e293b', marginBottom: '1.5rem', textAlign: 'center' }}>People who viewed this also viewed</h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
+                            {relatedSuits.map(s => (
+                                <Link key={s.id} href={`/shop/${s.id}`} style={{ display: 'block', background: '#fff', borderRadius: 16, overflow: 'hidden', border: '1px solid #e2e8f0', textDecoration: 'none', transition: 'transform 0.2s, box-shadow 0.2s' }}
+                                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.06)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                                    <div style={{ height: 260, background: s.color, position: 'relative' }}>
+                                        {s.bannerUrl && <img src={s.bannerUrl} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                                    </div>
+                                    <div style={{ padding: '1.25rem' }}>
+                                        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>{s.name}</h3>
+                                        <p style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--accent)' }}>₹{s.price.toLocaleString()}</p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* ── Reviews Section ────────────────────────────────────────── */}
             <div className="max-w-[1100px] mx-auto px-5 py-10" style={{ borderTop: '1px solid var(--border)' }}>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e293b', marginBottom: '1.5rem' }}>Customer Reviews ({reviews.length})</h2>
@@ -466,29 +490,6 @@ export default function ProductPage() {
                 </div>
             </div>
 
-            {/* ── Related Products ────────────────────────────────────────── */}
-            {relatedSuits.length > 0 && (
-                <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '4rem 1.25rem' }}>
-                    <div className="max-w-[1100px] mx-auto">
-                        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e293b', marginBottom: '1.5rem', textAlign: 'center' }}>People who viewed this also viewed</h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
-                            {relatedSuits.map(s => (
-                                <Link key={s.id} href={`/shop/${s.id}`} style={{ display: 'block', background: '#fff', borderRadius: 16, overflow: 'hidden', border: '1px solid #e2e8f0', textDecoration: 'none', transition: 'transform 0.2s, box-shadow 0.2s' }}
-                                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.06)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                                    <div style={{ height: 260, background: s.color, position: 'relative' }}>
-                                        {s.bannerUrl && <img src={s.bannerUrl} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                                    </div>
-                                    <div style={{ padding: '1.25rem' }}>
-                                        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>{s.name}</h3>
-                                        <p style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--accent)' }}>₹{s.price.toLocaleString()}</p>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {showPayment && user && (
                 <PaymentModal
