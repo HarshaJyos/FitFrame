@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { addToCart, toggleWishlist, getWishlist } from '@/lib/firestore';
+import { getAllReviews } from '@/lib/reviews';
 import { getActiveSuits, Suit } from '@/lib/suits';
 
 const CATEGORIES = ['All', 'Formal', 'Business', 'Casual'];
@@ -16,14 +17,46 @@ export default function ShopPage() {
     const [error, setError] = useState('');
     const [wishlistedIds, setWishlistedIds] = useState<Set<string>>(new Set());
     const [cartFeedback, setCartFeedback] = useState<Record<string, boolean>>({});
-    const [category, setCategory] = useState('All');
+    const [suitRatings, setSuitRatings] = useState<Record<string, { avg: number; count: number }>>({});
 
-    // Load suits from Firestore
+    // Filter States
+    const [category, setCategory] = useState('All');
+    const [showFilters, setShowFilters] = useState(false);
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 50000]);
+    const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+    const [selectedColors, setSelectedColors] = useState<string[]>([]);
+    const [minRating, setMinRating] = useState<number>(0);
+
+    // Derived Filters
+    const availableSizes = useMemo(() => Array.from(new Set(suits.flatMap(s => s.sizes || []))).sort(), [suits]);
+    const availableColors = useMemo(() => Array.from(new Set(suits.map(s => s.color).filter(Boolean))), [suits]);
+    const maxPrice = useMemo(() => suits.length > 0 ? Math.max(...suits.map(s => s.price)) : 50000, [suits]);
+
+    useEffect(() => {
+        if (suits.length > 0) setPriceRange([0, Math.max(...suits.map(s => s.price))]);
+    }, [suits]);
+
+    // Load suits
     useEffect(() => {
         getActiveSuits()
             .then(setSuits)
             .catch(() => setError('Failed to load suits. Please try again.'))
             .finally(() => setLoading(false));
+
+        getAllReviews().then(reviews => {
+            const approved = reviews.filter(r => r.isApproved);
+            const ratingsMap: Record<string, { total: number; count: number }> = {};
+            for (const r of approved) {
+                if (!ratingsMap[r.suitId]) ratingsMap[r.suitId] = { total: 0, count: 0 };
+                ratingsMap[r.suitId].total += r.rating;
+                ratingsMap[r.suitId].count += 1;
+            }
+            const result: Record<string, { avg: number; count: number }> = {};
+            for (const [id, data] of Object.entries(ratingsMap)) {
+                result[id] = { avg: data.total / data.count, count: data.count };
+            }
+            setSuitRatings(result);
+        }).catch(console.error);
     }, []);
 
     // Load wishlist
@@ -61,7 +94,39 @@ export default function ShopPage() {
         setTimeout(() => setCartFeedback(p => ({ ...p, [suit.id!]: false })), 1800);
     }, [user]);
 
-    const displayed = category === 'All' ? suits : suits.filter(s => s.category === category);
+    const renderStars = (rating: number, size: number = 14) => {
+        return (
+            <div style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                {[1, 2, 3, 4, 5].map((star) => {
+                    const fill = Math.min(Math.max(rating - star + 1, 0), 1);
+                    return (
+                        <div key={star} style={{ position: 'relative', width: size, height: size }}>
+                            <svg viewBox="0 0 24 24" fill="#e2e8f0" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+                                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <div style={{ position: 'absolute', inset: 0, width: `${fill * 100}%`, overflow: 'hidden' }}>
+                                <svg viewBox="0 0 24 24" fill="#fbbf24" xmlns="http://www.w3.org/2000/svg" style={{ width: size, height: size }}>
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const displayed = useMemo(() => suits.filter(s => {
+        if (category !== 'All' && s.category !== category) return false;
+        if (s.price < priceRange[0] || s.price > priceRange[1]) return false;
+        if (selectedSizes.length > 0 && !(s.sizes || []).some(size => selectedSizes.includes(size))) return false;
+        if (selectedColors.length > 0 && !selectedColors.includes(s.color)) return false;
+        if (minRating > 0) {
+            const rating = suitRatings[s.id!]?.avg || 0;
+            if (rating < minRating) return false;
+        }
+        return true;
+    }), [suits, category, priceRange, selectedSizes, selectedColors, minRating, suitRatings]);
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -82,15 +147,110 @@ export default function ShopPage() {
 
             {/* Category filter */}
             <div className="max-w-6xl mx-auto px-5 pt-6">
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {CATEGORIES.map(c => (
-                        <button key={c} onClick={() => setCategory(c)}
-                            style={{ padding: '0.4rem 1rem', borderRadius: 99, fontSize: '0.82rem', fontWeight: 600, border: category === c ? 'none' : '1px solid var(--border)', cursor: 'pointer', background: category === c ? 'var(--accent)' : '#fff', color: category === c ? '#fff' : 'var(--text-2)', boxShadow: category === c ? '0 2px 8px rgba(234,88,12,0.25)' : 'none', transition: 'all 0.15s' }}>
-                            {c}
-                        </button>
-                    ))}
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        {CATEGORIES.map(c => (
+                            <button key={c} onClick={() => setCategory(c)}
+                                style={{ padding: '0.4rem 1rem', borderRadius: 99, fontSize: '0.82rem', fontWeight: 600, border: category === c ? 'none' : '1px solid var(--border)', cursor: 'pointer', background: category === c ? 'var(--accent)' : '#fff', color: category === c ? '#fff' : 'var(--text-2)', boxShadow: category === c ? '0 2px 8px rgba(234,88,12,0.25)' : 'none', transition: 'all 0.15s' }}>
+                                {c}
+                            </button>
+                        ))}
+                    </div>
+                    <button onClick={() => setShowFilters(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0.45rem 1rem', borderRadius: 8, background: '#fff', border: '1px solid var(--border)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)', cursor: 'pointer' }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                        Filters
+                        {(selectedColors.length > 0 || selectedSizes.length > 0 || minRating > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
+                            <span style={{ background: 'var(--accent)', color: '#fff', fontSize: '0.7rem', width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>!</span>
+                        )}
+                    </button>
                 </div>
             </div>
+
+            {/* Filter Modal */}
+            {showFilters && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', justifyContent: 'flex-end', background: 'rgba(0,0,0,0.5)' }}>
+                    <div style={{ background: '#fff', width: '100%', maxWidth: 360, height: '100%', display: 'flex', flexDirection: 'column', animation: 'slideInRight 0.3s ease forwards' }} className="shadow-2xl">
+                        <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h2 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Filters</h2>
+                            <button onClick={() => setShowFilters(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--text-2)' }}>&times;</button>
+                        </div>
+
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem' }}>
+                            {/* Price */}
+                            <div style={{ marginBottom: '2rem' }}>
+                                <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '.75rem' }}>Price Range</h3>
+                                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                                    <input type="number" min={0} max={priceRange[1]} value={priceRange[0]} onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])} style={{ flex: 1, padding: '.5rem', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.85rem' }} />
+                                    <span>-</span>
+                                    <input type="number" min={priceRange[0]} max={maxPrice} value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])} style={{ flex: 1, padding: '.5rem', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.85rem' }} />
+                                </div>
+                            </div>
+
+                            {/* Sizes */}
+                            {availableSizes.length > 0 && (
+                                <div style={{ marginBottom: '2rem' }}>
+                                    <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '.75rem' }}>Sizes</h3>
+                                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                        {availableSizes.map(s => (
+                                            <button key={s} onClick={() => setSelectedSizes(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])}
+                                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, borderRadius: 6, border: selectedSizes.includes(s) ? '1px solid var(--accent)' : '1px solid var(--border)', background: selectedSizes.includes(s) ? 'var(--accent-lt)' : '#fff', color: selectedSizes.includes(s) ? 'var(--accent)' : 'var(--text-2)' }}>
+                                                {s}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Colors */}
+                            {availableColors.length > 0 && (
+                                <div style={{ marginBottom: '2rem' }}>
+                                    <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '.75rem' }}>Colors</h3>
+                                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                        {availableColors.map(c => (
+                                            <button key={c} onClick={() => setSelectedColors(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])}
+                                                style={{ width: 30, height: 30, borderRadius: '50%', background: c, border: selectedColors.includes(c) ? '2px solid var(--accent)' : '1px solid var(--border)', outline: selectedColors.includes(c) ? '2px solid var(--bg)' : 'none', outlineOffset: -2, cursor: 'pointer', transition: 'transform 0.1s', transform: selectedColors.includes(c) ? 'scale(1.1)' : 'scale(1)' }}
+                                                aria-label={`Color ${c}`} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Rating */}
+                            <div style={{ marginBottom: '2rem' }}>
+                                <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '.75rem' }}>Customer Ratings</h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                    {[4, 3, 2, 1].map(star => (
+                                        <label key={star} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.85rem', color: minRating === star ? 'var(--text)' : 'var(--text-2)' }}>
+                                            <input type="radio" name="rating" checked={minRating === star} onChange={() => setMinRating(star)} style={{ accentColor: 'var(--accent)' }} />
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                {renderStars(star, 14)} &amp; Up
+                                            </div>
+                                        </label>
+                                    ))}
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.85rem', color: minRating === 0 ? 'var(--text)' : 'var(--text-2)' }}>
+                                        <input type="radio" name="rating" checked={minRating === 0} onChange={() => setMinRating(0)} style={{ accentColor: 'var(--accent)' }} />
+                                        Any Rating
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div style={{ padding: '1.25rem', borderTop: '1px solid var(--border)', display: 'flex', gap: 10 }}>
+                            <button onClick={() => {
+                                setPriceRange([0, maxPrice]); setSelectedSizes([]); setSelectedColors([]); setMinRating(0);
+                            }} style={{ flex: 1, padding: '0.8rem', borderRadius: 8, background: '#f1f5f9', color: 'var(--text)', fontWeight: 600, fontSize: '0.9rem' }}>Clear All</button>
+                            <button onClick={() => setShowFilters(false)} className="btn-primary" style={{ flex: 2, padding: '0.8rem', borderRadius: 8, fontSize: '0.9rem' }}>Show {displayed.length} results</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            <style jsx global>{`
+                @keyframes slideInRight {
+                    from { transform: translateX(100%); }
+                    to { transform: translateX(0); }
+                }
+            `}</style>
 
             {/* Grid */}
             <div className="max-w-6xl mx-auto px-5 py-8">
@@ -164,7 +324,15 @@ export default function ShopPage() {
 
                                         {/* Info */}
                                         <div style={{ padding: '0.85rem' }}>
-                                            <p style={{ fontSize: '0.7rem', color: 'var(--text-3)', marginBottom: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{suit.category}</p>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 2 }}>
+                                                <p style={{ fontSize: '0.7rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{suit.category}</p>
+                                                {(suitRatings[suit.id!]?.count > 0) && (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                                        {renderStars(suitRatings[suit.id!].avg, 10)}
+                                                        <span style={{ fontSize: '0.65rem', color: 'var(--text-3)', fontWeight: 600 }}>({suitRatings[suit.id!].count})</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                             <p style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)', marginBottom: 6 }}>{suit.name}</p>
                                             <div className="flex items-center gap-2 mb-3">
                                                 <span style={{ fontWeight: 800, color: 'var(--accent)', fontSize: '1rem' }}>₹{suit.price.toLocaleString()}</span>
