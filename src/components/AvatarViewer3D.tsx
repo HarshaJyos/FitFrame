@@ -12,7 +12,7 @@ function getCachedTexture(url: string, loader: THREE.TextureLoader): THREE.Textu
     if (textureCache.has(url)) return textureCache.get(url)!;
     const tex = loader.load(url);
     tex.colorSpace = THREE.SRGBColorSpace;
-    tex.flipY = false;
+    tex.flipY = false; // GLTF uses flipY false natively.
     textureCache.set(url, tex);
     return tex;
 }
@@ -82,6 +82,15 @@ export default function AvatarViewer3D({
     const swapSuitTexture = useCallback((url: string) => {
         const tex = getCachedTexture(url, texLoader.current);
         suitMatRefs.current.forEach(mat => {
+            if (mat.map) {
+                tex.flipY = mat.map.flipY;
+                tex.wrapS = mat.map.wrapS;
+                tex.wrapT = mat.map.wrapT;
+                tex.repeat.copy(mat.map.repeat);
+                tex.offset.copy(mat.map.offset);
+                tex.rotation = mat.map.rotation;
+                tex.colorSpace = mat.map.colorSpace;
+            }
             mat.map = tex;
             mat.needsUpdate = true;
         });
@@ -199,6 +208,14 @@ export default function AvatarViewer3D({
                             suitMatRefs.current.push(mat);
                             // Apply initial texture (may differ from the baked one)
                             const tex = getCachedTexture(initialSuitUrl, texLoader.current);
+                            if (mat.map) {
+                                tex.flipY = mat.map.flipY;
+                                tex.wrapS = mat.map.wrapS;
+                                tex.wrapT = mat.map.wrapT;
+                                tex.repeat.copy(mat.map.repeat);
+                                tex.offset.copy(mat.map.offset);
+                                tex.rotation = mat.map.rotation;
+                            }
                             mat.map = tex;
                             mat.needsUpdate = true;
                         }

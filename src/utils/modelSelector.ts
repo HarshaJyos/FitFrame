@@ -1,11 +1,11 @@
 // ─── 3D Model paths (local GLTF files — only models stay local) ──────────────
 export const MODEL_BASE = '/models';
 
-// ─── Available model bodies (1–9 for different BMIs/builds) ──────────────────
-export const MODEL_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+// ─── Available model bodies (Single SMPL model per gender now) ──────────────────
+export const MODEL_NUMBERS = [1]; // Kept for backwards compatibility if used elsewhere
 
-export function getModelPath(modelNumber: number): string {
-    return `${MODEL_BASE}/male_m0${modelNumber}.gltf`;
+export function getModelPath(gender: 'male' | 'female'): string {
+    return gender === 'female' ? `${MODEL_BASE}/Female_2.gltf` : `${MODEL_BASE}/male.gltf`;
 }
 
 // ─── BMI helpers ─────────────────────────────────────────────────────────────
@@ -23,19 +23,12 @@ export function getBMICategory(bmi: number): string {
 
 export type BodyType = 'slim' | 'average' | 'muscular' | 'heavy';
 
-export function selectModel(bmi: number, bodyType: BodyType): string {
-    return getModelPath(selectModelNumber(bmi, bodyType));
+export function selectModel(bmi: number, bodyType: BodyType, gender: 'male' | 'female' = 'male'): string {
+    return getModelPath(gender);
 }
 
 export function selectModelNumber(bmi: number, bodyType: BodyType): number {
-    if (bmi < 17.5) return 1;
-    if (bmi < 18.5) return bodyType === 'slim' ? 1 : 2;
-    if (bmi < 21) return bodyType === 'muscular' ? 4 : (bodyType === 'slim' ? 2 : (bodyType === 'heavy' ? 5 : 3));
-    if (bmi < 23) return bodyType === 'muscular' ? 5 : (bodyType === 'slim' ? 3 : (bodyType === 'heavy' ? 7 : 4));
-    if (bmi < 25) return bodyType === 'muscular' ? 6 : (bodyType === 'slim' ? 4 : (bodyType === 'heavy' ? 7 : 5));
-    if (bmi < 27.5) return bodyType === 'heavy' ? 8 : (bodyType === 'muscular' ? 6 : 7);
-    if (bmi < 32) return bodyType === 'heavy' ? 9 : 8;
-    return 9;
+    return 1;
 }
 
 export interface SizeResult {

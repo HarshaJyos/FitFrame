@@ -3,13 +3,13 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { calculateBMI, getBMICategory, selectModel, recommendSize } from '@/utils/modelSelector';
+import { calculateBMI, getBMICategory, recommendSize } from '@/utils/modelSelector';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAuth } from '@/context/AuthContext';
 import { updateUserProfile } from '@/lib/firestore';
 import AuthGuard from '@/components/AuthGuard';
 import Navbar from '@/components/Navbar';
-import { BodyType } from '@/utils/modelSelector';
+
 
 interface MeasData {
     gender: 'male' | 'female';

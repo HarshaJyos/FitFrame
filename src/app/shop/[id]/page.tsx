@@ -133,7 +133,7 @@ export default function ProductPage() {
     // Compute model path
     const modelPath = userData?.selectedModel
         ? userData.selectedModel
-        : `${MODEL_BASE}/male_m05.gltf`;
+        : `${MODEL_BASE}/male.gltf`;
 
     const blendshapes = userData ? calculateSMPLBlendshapes(userData.measurements as any, userData.gender) : undefined;
 
