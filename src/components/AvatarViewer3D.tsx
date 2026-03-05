@@ -189,13 +189,13 @@ export default function AvatarViewer3D({
                         }
                     }
 
-                    // Find the casualsuit material(s) — this is the swappable jacket
+                    // Find the body material(s) — this is the swappable suit/skin texture
                     const mats = Array.isArray(mesh.material)
                         ? mesh.material as THREE.MeshStandardMaterial[]
                         : [mesh.material as THREE.MeshStandardMaterial];
 
                     mats.forEach((mat) => {
-                        if (mat.name.toLowerCase().includes('casualsuit')) {
+                        if (mat.name.toLowerCase().includes('body')) {
                             suitMatRefs.current.push(mat);
                             // Apply initial texture (may differ from the baked one)
                             const tex = getCachedTexture(initialSuitUrl, texLoader.current);

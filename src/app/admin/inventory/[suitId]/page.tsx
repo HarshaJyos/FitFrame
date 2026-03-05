@@ -12,6 +12,7 @@ const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '28"', '30"', '32"', 
 const EMPTY: Omit<Suit, 'id' | 'createdAt' | 'updatedAt'> = {
     name: '', description: '', price: 0, originalPrice: 0,
     highlights: ['', '', ''], fabric: '', category: 'Formal',
+    gender: 'unisex',
     badge: '', color: '#1e3a5f', textureUrl: '', cloudinaryPublicId: '',
     sizes: [], stock: 50, isActive: true, isDeleted: false,
 };
@@ -328,6 +329,15 @@ function EditSuitContent() {
                                 <select value={form.category} onChange={e => set('category', e.target.value)}
                                     style={{ width: '100%', padding: '0.6rem 0.8rem', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: '0.88rem', outline: 'none' }}>
                                     {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: 4 }}>Gender *</label>
+                                <select value={form.gender || 'unisex'} onChange={e => set('gender', e.target.value as 'male' | 'female' | 'unisex')}
+                                    style={{ width: '100%', padding: '0.6rem 0.8rem', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: '0.88rem', outline: 'none' }}>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="unisex">Unisex</option>
                                 </select>
                             </div>
                             <div>

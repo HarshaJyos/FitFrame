@@ -15,6 +15,7 @@ export interface Suit {
     highlights: string[];          // short bullet points
     fabric: string;
     category: string;
+    gender: 'male' | 'female' | 'unisex';
     badge?: string;                // e.g. "Best Seller", "New", "Premium"
     color: string;                 // hex for UI swatch
     textureUrl: string;            // Cloudinary URL
