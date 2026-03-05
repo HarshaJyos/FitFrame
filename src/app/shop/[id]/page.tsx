@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -52,9 +52,11 @@ export default function ProductPage() {
     const [modelLoaded, setModelLoaded] = useState(false);
     const [loadPct, setLoadPct] = useState(0);
     const [showPayment, setShowPayment] = useState(false);
-    const [wishlisted, setWishlisted] = useState(false);
     const [cartAdded, setCartAdded] = useState(false);
     const [cartLoading, setCartLoading] = useState(false);
+    const [wishlistedIds, setWishlistedIds] = useState<Set<string>>(new Set());
+    const [cartFeedback, setCartFeedback] = useState<Record<string, boolean>>({});
+    const [relatedRatings, setRelatedRatings] = useState<Record<string, number>>({});
     const viewerRef = useRef<AvatarViewer3DHandle | null>(null);
 
     // Load suit and related data from Firestore
@@ -117,20 +119,67 @@ export default function ProductPage() {
 
     // Check wishlist
     useEffect(() => {
-        if (!user || !suit?.id) return;
+        if (!user) return;
         import('@/lib/firestore').then(({ getWishlist }) =>
             getWishlist(user.uid).then(items => {
-                setWishlisted(items.some(i => i.suitId === suit.id));
+                setWishlistedIds(new Set(items.map(i => i.suitId)));
             })
         );
-    }, [user, suit]);
+    }, [user]);
+
+    const wishlisted = suit ? wishlistedIds.has(suit.id!) : false;
 
     const handleWishlist = useCallback(async () => {
         if (!user) { router.push('/login'); return; }
         if (!suit?.id) return;
         const added = await toggleWishlist(user.uid, { suitId: suit.id, label: suit.name, price: suit.price, color: suit.color, originalPrice: suit.originalPrice, textureUrl: suit.textureUrl, bannerUrl: suit.bannerUrl });
-        setWishlisted(added);
+        setWishlistedIds(prev => {
+            const next = new Set(prev);
+            if (added) next.add(suit.id!); else next.delete(suit.id!);
+            return next;
+        });
     }, [user, suit, router]);
+
+    const handleRelatedWishlist = useCallback(async (relatedSuit: Suit, e: React.MouseEvent) => {
+        e.preventDefault();
+        if (!user || !relatedSuit.id) return;
+        const added = await toggleWishlist(user.uid, { suitId: relatedSuit.id, label: relatedSuit.name, price: relatedSuit.price, originalPrice: relatedSuit.originalPrice, textureUrl: relatedSuit.textureUrl, color: relatedSuit.color });
+        setWishlistedIds(prev => {
+            const next = new Set(prev);
+            if (added) next.add(relatedSuit.id!); else next.delete(relatedSuit.id!);
+            return next;
+        });
+    }, [user]);
+
+    const handleRelatedAddCart = useCallback(async (relatedSuit: Suit, e: React.MouseEvent) => {
+        e.preventDefault();
+        if (!user || !relatedSuit.id) return;
+        await addToCart(user.uid, {
+            suitId: relatedSuit.id,
+            label: relatedSuit.name,
+            price: relatedSuit.price,
+            originalPrice: relatedSuit.originalPrice,
+            quantity: 1,
+            textureUrl: relatedSuit.textureUrl,
+            color: relatedSuit.color,
+        });
+        setCartFeedback(p => ({ ...p, [relatedSuit.id!]: true }));
+        setTimeout(() => setCartFeedback(p => ({ ...p, [relatedSuit.id!]: false })), 1800);
+    }, [user]);
+
+    // Fetch related ratings
+    useEffect(() => {
+        if (relatedSuits.length === 0) return;
+        relatedSuits.forEach(async s => {
+            if (s.id) {
+                const r = await getSuitReviews(s.id);
+                if (r.length > 0) {
+                    const avg = r.reduce((acc, curr) => acc + curr.rating, 0) / r.length;
+                    setRelatedRatings(p => ({ ...p, [s.id!]: avg }));
+                }
+            }
+        });
+    }, [relatedSuits]);
 
     const handleAddCart = useCallback(async () => {
         if (!user) { router.push('/login'); return; }
@@ -168,6 +217,33 @@ export default function ProductPage() {
 
     const disc = suit && suit.originalPrice > suit.price
         ? Math.round((1 - suit.price / suit.originalPrice) * 100) : 0;
+
+    const renderStars = (rating: number, size: number = 14) => {
+        return (
+            <div style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                {[1, 2, 3, 4, 5].map((star) => {
+                    const fill = Math.min(Math.max(rating - star + 1, 0), 1);
+                    return (
+                        <div key={star} style={{ position: 'relative', width: size, height: size }}>
+                            <svg viewBox="0 0 24 24" fill="#e2e8f0" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+                                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                            <div style={{ position: 'absolute', inset: 0, width: `${fill * 100}%`, overflow: 'hidden' }}>
+                                <svg viewBox="0 0 24 24" fill="#fbbf24" xmlns="http://www.w3.org/2000/svg" style={{ width: size, height: size }}>
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const avgRating = useMemo(() => {
+        if (reviews.length === 0) return 0;
+        return reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length;
+    }, [reviews]);
 
     const handleSubmitReview = async () => {
         if (!user || !suit?.id || !reviewText.trim()) return;
@@ -294,6 +370,10 @@ export default function ProductPage() {
                         <span style={{ fontSize: '0.72rem', background: 'var(--accent-lt)', color: 'var(--accent)', fontWeight: 700, padding: '3px 10px', borderRadius: 99, textTransform: 'uppercase' }}>{suit.category}</span>
                         {suit.badge && <span className="badge">{suit.badge}</span>}
                         {outOfStock && <span style={{ fontSize: '0.72rem', background: '#fef2f2', color: '#dc2626', padding: '3px 10px', borderRadius: 99, fontWeight: 700 }}>Out of Stock</span>}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
+                            {renderStars(avgRating, 14)}
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>({avgRating.toFixed(1)})</span>
+                        </div>
                     </div>
                     <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.75rem', lineHeight: 1.2 }}>{suit.name}</h1>
 
@@ -392,99 +472,154 @@ export default function ProductPage() {
 
             {/* ── Related Products ────────────────────────────────────────── */}
             {relatedSuits.length > 0 && (
-                <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '4rem 1.25rem' }}>
-                    <div className="max-w-[1100px] mx-auto">
-                        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e293b', marginBottom: '1.5rem', textAlign: 'center' }}>People who viewed this also viewed</h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
-                            {relatedSuits.map(s => (
-                                <Link key={s.id} href={`/shop/${s.id}`} style={{ display: 'block', background: '#fff', borderRadius: 16, overflow: 'hidden', border: '1px solid #e2e8f0', textDecoration: 'none', transition: 'transform 0.2s, box-shadow 0.2s' }}
-                                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.06)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                                    <div style={{ height: 260, background: s.color, position: 'relative' }}>
-                                        {s.bannerUrl && <img src={s.bannerUrl} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                <div style={{ borderTop: '1px solid var(--border)', padding: '2.5rem 0' }}>
+                    <div className="max-w-[1100px] mx-auto px-5">
+                        <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text)', marginBottom: '1.5rem' }}>People also viewed</h2>
+
+                        {/* Horizontal Scroll Area */}
+                        <div style={{ display: 'flex', gap: '1.25rem', overflowX: 'auto', paddingBottom: '1rem', scrollbarWidth: 'none', msOverflowStyle: 'none', margin: '0 -1.25rem', padding: '0 1.25rem' }}>
+                            <style>{`
+                                div::-webkit-scrollbar { display: none; }
+                            `}</style>
+
+                            {relatedSuits.map(s => {
+                                const disc = s.originalPrice > s.price
+                                    ? Math.round((1 - s.price / s.originalPrice) * 100)
+                                    : 0;
+                                const isWishlisted = wishlistedIds.has(s.id!);
+                                const cartAdded = cartFeedback[s.id!];
+                                const isOutOfStock = s.stock <= 0;
+                                const rRating = relatedRatings[s.id!] || 0;
+
+                                return (
+                                    <div key={s.id} style={{ position: 'relative', opacity: isOutOfStock ? 0.75 : 1, minWidth: 240, maxWidth: 280, flex: '0 0 auto' }}>
+                                        <Link href={`/shop/${s.id}`} className="product-card card overflow-hidden block border border-[var(--border)] rounded-[14px]">
+                                            <div style={{ height: 180, background: s.bannerUrl ? '#fff' : `linear-gradient(160deg, ${s.color}55, ${s.color}cc)`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', padding: '0 0.75rem 0.75rem', position: 'relative', overflow: 'hidden' }}>
+                                                {s.bannerUrl ? (
+                                                    <img src={s.bannerUrl} alt={s.name} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                                ) : s.textureUrl ? (
+                                                    <img src={s.textureUrl} alt={s.name}
+                                                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.35 }}
+                                                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                                ) : null}
+                                                {!s.bannerUrl && <span style={{ fontSize: '3rem', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-65%)', zIndex: 1 }}>🧥</span>}
+
+                                                <div className="flex gap-1.5 flex-wrap justify-center" style={{ zIndex: 2, position: 'relative' }}>
+                                                    {s.badge && <span className="badge" style={{ fontSize: '10px' }}>{s.badge}</span>}
+                                                    {disc > 0 && <span style={{ background: 'rgba(0,0,0,0.45)', color: '#fff', fontSize: '10px', fontWeight: 600, padding: '2px 7px', borderRadius: 99 }}>{disc}% off</span>}
+                                                    {isOutOfStock && <span style={{ background: '#dc2626', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: 99 }}>Out of Stock</span>}
+                                                </div>
+
+                                                {user && !isOutOfStock && (
+                                                    <button onClick={e => handleRelatedWishlist(s, e)}
+                                                        style={{ position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, transition: 'all 0.15s', zIndex: 2 }}>
+                                                        {isWishlisted ? '❤️' : '🤍'}
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div style={{ padding: '0.85rem' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 2 }}>
+                                                    <p style={{ fontSize: '0.7rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.category}</p>
+                                                    {rRating > 0 && (
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                            {renderStars(rRating, 10)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)', marginBottom: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</p>
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <span style={{ fontWeight: 800, color: 'var(--accent)', fontSize: '1rem' }}>₹{s.price.toLocaleString()}</span>
+                                                    {disc > 0 && <span style={{ textDecoration: 'line-through', fontSize: '0.78rem', color: 'var(--text-3)' }}>₹{s.originalPrice.toLocaleString()}</span>}
+                                                </div>
+
+                                                <div className="flex gap-2">
+                                                    <div style={{ flex: 1, padding: '0.45rem 0', textAlign: 'center', background: 'var(--accent-lt)', color: 'var(--accent)', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600 }}>
+                                                        Try On →
+                                                    </div>
+                                                    {user && !isOutOfStock && (
+                                                        <button onClick={e => handleRelatedAddCart(s, e)}
+                                                            style={{ padding: '0.45rem 0.6rem', borderRadius: 8, background: cartAdded ? '#dcfce7' : 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: cartAdded ? '#15803d' : 'var(--text-2)', transition: 'all 0.2s' }}>
+                                                            {cartAdded ? '✓' : '🛒'}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </Link>
                                     </div>
-                                    <div style={{ padding: '1.25rem' }}>
-                                        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>{s.name}</h3>
-                                        <p style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--accent)' }}>₹{s.price.toLocaleString()}</p>
-                                    </div>
-                                </Link>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
             )}
 
             {/* ── Reviews Section ────────────────────────────────────────── */}
-            <div className="max-w-[1100px] mx-auto px-5 py-10" style={{ borderTop: '1px solid var(--border)' }}>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e293b', marginBottom: '1.5rem' }}>Customer Reviews ({reviews.length})</h2>
+            <div className="max-w-[1100px] mx-auto px-5 py-8" style={{ borderTop: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
+                    <div>
+                        <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>Reviews</h2>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            {renderStars(avgRating, 16)}
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-2)', fontWeight: 600 }}>{avgRating.toFixed(1)} out of 5 ({reviews.length})</span>
+                        </div>
+                    </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                    {/* Review List */}
+                    <div className="md:col-span-2" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        {reviews.length === 0 ? (
+                            <p style={{ color: 'var(--text-3)', fontSize: '0.9rem' }}>No reviews yet. Be the first to share your experience!</p>
+                        ) : (
+                            reviews.map(r => (
+                                <div key={r.id} style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                        {renderStars(r.rating, 12)}
+                                        <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text)' }}>{r.userName}</span>
+                                        {r.createdAt && (
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-3)', marginLeft: 'auto' }}>
+                                                {r.createdAt.toDate().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-2)', lineHeight: 1.5 }}>
+                                        {r.comment}
+                                    </p>
+                                </div>
+                            ))
+                        )}
+                    </div>
 
                     {/* Add Review Form */}
-                    <div style={{ background: '#fff', padding: '1.5rem', borderRadius: 16, border: '1px solid #e2e8f0', position: 'sticky', top: 90 }}>
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem' }}>Write a Review</h3>
+                    <div style={{ background: '#fdfdfc', padding: '1.25rem', borderRadius: 12, border: '1px solid var(--border)' }}>
+                        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text)' }}>Write a Review</h3>
                         {!user ? (
-                            <p style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                                Please <Link href="/login" style={{ color: '#4f46e5', fontWeight: 600 }}>log in</Link> to share your experience.
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-3)' }}>
+                                Please <Link href="/login" style={{ color: 'var(--accent)', fontWeight: 600 }}>log in</Link> to share your experience.
                             </p>
                         ) : (
                             <div>
-                                <div style={{ display: 'flex', gap: 6, marginBottom: '1rem', cursor: 'pointer' }}>
+                                <div style={{ display: 'flex', gap: 4, marginBottom: '1rem', cursor: 'pointer' }}>
                                     {[1, 2, 3, 4, 5].map(star => (
-                                        <span key={star} onClick={() => setReviewRating(star)}
-                                            style={{ color: star <= reviewRating ? '#fbbf24' : '#e2e8f0', fontSize: '1.4rem', transition: 'color 0.2s' }}>★</span>
+                                        <svg key={star} onClick={() => setReviewRating(star)} viewBox="0 0 24 24" fill={star <= reviewRating ? '#fbbf24' : '#e2e8f0'} xmlns="http://www.w3.org/2000/svg" style={{ width: 22, height: 22, transition: 'fill 0.2s' }}>
+                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                        </svg>
                                     ))}
                                 </div>
                                 <textarea
                                     value={reviewText}
                                     onChange={e => setReviewText(e.target.value)}
-                                    placeholder="What did you think about the fit, fabric, and quality?"
-                                    rows={4}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 10, border: '1px solid #e2e8f0', fontSize: '0.85rem', resize: 'vertical', outline: 'none', marginBottom: '1rem', background: '#f8fafc' }}
+                                    placeholder="How does it fit?"
+                                    rows={3}
+                                    style={{ width: '100%', padding: '0.65rem', borderRadius: 8, border: '1px solid var(--border)', fontSize: '0.85rem', resize: 'vertical', outline: 'none', marginBottom: '1rem', background: '#fff' }}
                                 />
                                 <button
                                     onClick={handleSubmitReview}
                                     disabled={submittingReview || !reviewText.trim()}
-                                    className="btn-primary w-full" style={{ padding: '0.75rem', fontSize: '0.9rem', borderRadius: 10, textAlign: 'center', opacity: (!reviewText.trim() || submittingReview) ? 0.6 : 1 }}>
-                                    {submittingReview ? 'Posting…' : 'Submit Review'}
+                                    className="btn-primary w-full" style={{ padding: '0.6rem', fontSize: '0.85rem', borderRadius: 8, textAlign: 'center', opacity: (!reviewText.trim() || submittingReview) ? 0.6 : 1 }}>
+                                    {submittingReview ? 'Posting…' : 'Submit'}
                                 </button>
                             </div>
-                        )}
-                    </div>
-
-                    {/* Review List */}
-                    <div className="md:col-span-2" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {reviews.length === 0 ? (
-                            <div style={{ padding: '2rem', background: '#f8fafc', borderRadius: 16, textAlign: 'center', border: '1px dashed #cbd5e1' }}>
-                                <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Be the first to review this suite!</p>
-                            </div>
-                        ) : (
-                            reviews.map(r => (
-                                <div key={r.id} style={{ background: '#fff', padding: '1.25rem', borderRadius: 16, border: '1px solid #f1f5f9' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
-                                                {r.userName.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <p style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1e293b', lineHeight: 1 }}>{r.userName}</p>
-                                                <div style={{ display: 'flex', gap: 2, marginTop: 4 }}>
-                                                    {[1, 2, 3, 4, 5].map(star => (
-                                                        <span key={star} style={{ color: star <= r.rating ? '#fbbf24' : '#e2e8f0', fontSize: '0.9rem', lineHeight: 1 }}>★</span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {r.createdAt && (
-                                            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                                                {r.createdAt.toDate().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.6, marginTop: '0.75rem' }}>
-                                        {r.comment}
-                                    </p>
-                                </div>
-                            ))
                         )}
                     </div>
                 </div>
