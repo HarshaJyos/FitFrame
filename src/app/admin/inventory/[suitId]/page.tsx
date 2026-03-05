@@ -11,7 +11,7 @@ const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '28"', '30"', '32"', 
 
 const EMPTY: Omit<Suit, 'id' | 'createdAt' | 'updatedAt'> = {
     name: '', description: '', price: 0, originalPrice: 0,
-    highlights: ['', '', ''], fabric: '', category: 'Formal',
+    highlights: ['', '', ''], tags: [], fabric: '', category: 'Formal',
     gender: 'unisex',
     badge: '', color: '#1e3a5f', textureUrl: '', cloudinaryPublicId: '',
     sizes: [], stock: 50, isActive: true, isDeleted: false,
@@ -216,6 +216,12 @@ function EditSuitContent() {
                                 <textarea value={form.description} onChange={e => set('description', e.target.value)}
                                     rows={3} placeholder="Describe the suit, occasion, feel…"
                                     style={{ width: '100%', padding: '0.6rem 0.8rem', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: '0.85rem', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: 4 }}>Tags (comma-separated for recommendations)</label>
+                                <input type="text" value={(form.tags || []).join(', ')} onChange={e => set('tags', e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
+                                    placeholder="e.g. formal, premium, blue"
+                                    style={{ width: '100%', padding: '0.6rem 0.8rem', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box' }} />
                             </div>
                         </div>
                     </div>

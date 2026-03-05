@@ -13,6 +13,7 @@ export interface Suit {
     price: number;                 // selling price (INR)
     originalPrice: number;         // strike-through price
     highlights: string[];          // short bullet points
+    tags?: string[];               // keywords for recommendations
     fabric: string;
     category: string;
     gender: 'male' | 'female' | 'unisex';
@@ -95,4 +96,21 @@ export async function toggleSuitActive(id: string, isActive: boolean): Promise<v
         isActive,
         updatedAt: serverTimestamp(),
     });
+}
+
+/** Fetch suits matching at least one tag */
+export async function getRelatedSuits(tags: string[], excludeId: string, limitCount: number = 4): Promise<Suit[]> {
+    if (!tags || tags.length === 0) return [];
+    // Firestore 'array-contains-any' allows max 10 elements
+    const searchTags = tags.slice(0, 10);
+    const col = collection(db, 'suits');
+    const q = query(
+        col,
+        where('tags', 'array-contains-any', searchTags)
+    );
+    const snap = await getDocs(q);
+    return snap.docs
+        .map(d => ({ id: d.id, ...d.data() } as Suit))
+        .filter(s => s.id !== excludeId && !s.isDeleted && s.isActive)
+        .slice(0, limitCount);
 }

@@ -9,7 +9,8 @@ import { calculateSMPLBlendshapes } from '@/utils/smplCalculator';
 import type { AvatarViewer3DHandle } from '@/components/AvatarViewer3D';
 import { useAuth } from '@/context/AuthContext';
 import { getUserProfile, addToCart, toggleWishlist } from '@/lib/firestore';
-import { getSuit, Suit } from '@/lib/suits';
+import { getSuit, Suit, getRelatedSuits } from '@/lib/suits';
+import { Review, getSuitReviews, addReview } from '@/lib/reviews';
 import PaymentModal from '@/components/PaymentModal';
 import Navbar from '@/components/Navbar';
 
@@ -41,6 +42,12 @@ export default function ProductPage() {
     const [suitLoading, setSuitLoading] = useState(true);
     const [suitError, setSuitError] = useState('');
 
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [relatedSuits, setRelatedSuits] = useState<Suit[]>([]);
+    const [reviewText, setReviewText] = useState('');
+    const [reviewRating, setReviewRating] = useState(5);
+    const [submittingReview, setSubmittingReview] = useState(false);
+
     const [userData, setUserData] = useState<StoredUser | null>(null);
     const [modelLoaded, setModelLoaded] = useState(false);
     const [loadPct, setLoadPct] = useState(0);
@@ -50,16 +57,35 @@ export default function ProductPage() {
     const [cartLoading, setCartLoading] = useState(false);
     const viewerRef = useRef<AvatarViewer3DHandle | null>(null);
 
-    // Load suit from Firestore
+    // Load suit and related data from Firestore
     useEffect(() => {
         if (!suitId) return;
-        getSuit(suitId)
-            .then(data => {
-                if (!data) { setSuitError('This suit is no longer available.'); return; }
+
+        const loadData = async () => {
+            try {
+                const data = await getSuit(suitId);
+                if (!data) {
+                    setSuitError('This suit is no longer available.');
+                    return;
+                }
                 setSuit(data);
-            })
-            .catch(() => setSuitError('Failed to load suit. Please try again.'))
-            .finally(() => setSuitLoading(false));
+
+                const revs = await getSuitReviews(suitId);
+                setReviews(revs);
+
+                if (data.tags && Array.isArray(data.tags) && data.tags.length > 0) {
+                    const related = await getRelatedSuits(data.tags, data.id!);
+                    setRelatedSuits(related);
+                }
+            } catch (err) {
+                console.error("Error loading suit data:", err);
+                setSuitError('Failed to load suit. Please try again.');
+            } finally {
+                setSuitLoading(false);
+            }
+        };
+
+        loadData();
     }, [suitId]);
 
     // Load user data: Firestore first, then localStorage fallback
@@ -142,6 +168,28 @@ export default function ProductPage() {
 
     const disc = suit && suit.originalPrice > suit.price
         ? Math.round((1 - suit.price / suit.originalPrice) * 100) : 0;
+
+    const handleSubmitReview = async () => {
+        if (!user || !suit?.id || !reviewText.trim()) return;
+        setSubmittingReview(true);
+        try {
+            await addReview({
+                suitId: suit.id,
+                userId: user.uid,
+                userName: user.displayName || user.email?.split('@')[0] || 'User',
+                rating: reviewRating,
+                comment: reviewText.trim(),
+            });
+            setReviewText('');
+            setReviewRating(5);
+            const updated = await getSuitReviews(suit.id);
+            setReviews(updated);
+        } catch (err) {
+            console.error('Failed to post review', err);
+        } finally {
+            setSubmittingReview(false);
+        }
+    };
 
     // ── Loading / Error states ──────────────────────────────────────────────────
 
@@ -341,6 +389,106 @@ export default function ProductPage() {
                     </div>
                 </div>
             </div>
+
+            {/* ── Reviews Section ────────────────────────────────────────── */}
+            <div className="max-w-[1100px] mx-auto px-5 py-10" style={{ borderTop: '1px solid var(--border)' }}>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e293b', marginBottom: '1.5rem' }}>Customer Reviews ({reviews.length})</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+
+                    {/* Add Review Form */}
+                    <div style={{ background: '#fff', padding: '1.5rem', borderRadius: 16, border: '1px solid #e2e8f0', position: 'sticky', top: 90 }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem' }}>Write a Review</h3>
+                        {!user ? (
+                            <p style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                                Please <Link href="/login" style={{ color: '#4f46e5', fontWeight: 600 }}>log in</Link> to share your experience.
+                            </p>
+                        ) : (
+                            <div>
+                                <div style={{ display: 'flex', gap: 6, marginBottom: '1rem', cursor: 'pointer' }}>
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                        <span key={star} onClick={() => setReviewRating(star)}
+                                            style={{ color: star <= reviewRating ? '#fbbf24' : '#e2e8f0', fontSize: '1.4rem', transition: 'color 0.2s' }}>★</span>
+                                    ))}
+                                </div>
+                                <textarea
+                                    value={reviewText}
+                                    onChange={e => setReviewText(e.target.value)}
+                                    placeholder="What did you think about the fit, fabric, and quality?"
+                                    rows={4}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 10, border: '1px solid #e2e8f0', fontSize: '0.85rem', resize: 'vertical', outline: 'none', marginBottom: '1rem', background: '#f8fafc' }}
+                                />
+                                <button
+                                    onClick={handleSubmitReview}
+                                    disabled={submittingReview || !reviewText.trim()}
+                                    className="btn-primary w-full" style={{ padding: '0.75rem', fontSize: '0.9rem', borderRadius: 10, textAlign: 'center', opacity: (!reviewText.trim() || submittingReview) ? 0.6 : 1 }}>
+                                    {submittingReview ? 'Posting…' : 'Submit Review'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Review List */}
+                    <div className="md:col-span-2" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {reviews.length === 0 ? (
+                            <div style={{ padding: '2rem', background: '#f8fafc', borderRadius: 16, textAlign: 'center', border: '1px dashed #cbd5e1' }}>
+                                <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Be the first to review this suite!</p>
+                            </div>
+                        ) : (
+                            reviews.map(r => (
+                                <div key={r.id} style={{ background: '#fff', padding: '1.25rem', borderRadius: 16, border: '1px solid #f1f5f9' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
+                                                {r.userName.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1e293b', lineHeight: 1 }}>{r.userName}</p>
+                                                <div style={{ display: 'flex', gap: 2, marginTop: 4 }}>
+                                                    {[1, 2, 3, 4, 5].map(star => (
+                                                        <span key={star} style={{ color: star <= r.rating ? '#fbbf24' : '#e2e8f0', fontSize: '0.9rem', lineHeight: 1 }}>★</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {r.createdAt && (
+                                            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                                {r.createdAt.toDate().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.6, marginTop: '0.75rem' }}>
+                                        {r.comment}
+                                    </p>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Related Products ────────────────────────────────────────── */}
+            {relatedSuits.length > 0 && (
+                <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '4rem 1.25rem' }}>
+                    <div className="max-w-[1100px] mx-auto">
+                        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e293b', marginBottom: '1.5rem', textAlign: 'center' }}>People who viewed this also viewed</h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
+                            {relatedSuits.map(s => (
+                                <Link key={s.id} href={`/shop/${s.id}`} style={{ display: 'block', background: '#fff', borderRadius: 16, overflow: 'hidden', border: '1px solid #e2e8f0', textDecoration: 'none', transition: 'transform 0.2s, box-shadow 0.2s' }}
+                                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.06)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                                    <div style={{ height: 260, background: s.color, position: 'relative' }}>
+                                        {s.bannerUrl && <img src={s.bannerUrl} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                                    </div>
+                                    <div style={{ padding: '1.25rem' }}>
+                                        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>{s.name}</h3>
+                                        <p style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--accent)' }}>₹{s.price.toLocaleString()}</p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {showPayment && user && (
                 <PaymentModal
