@@ -98,19 +98,27 @@ export async function toggleSuitActive(id: string, isActive: boolean): Promise<v
     });
 }
 
-/** Fetch suits matching at least one tag */
-export async function getRelatedSuits(tags: string[], excludeId: string, limitCount: number = 4): Promise<Suit[]> {
+/** Fetch suits matching at least one tag, with gender-aware ordering */
+export async function getRelatedSuits(
+    tags: string[],
+    excludeId: string,
+    limitCount: number = 4,
+    preferGender?: 'male' | 'female',
+): Promise<Suit[]> {
     if (!tags || tags.length === 0) return [];
-    // Firestore 'array-contains-any' allows max 10 elements
     const searchTags = tags.slice(0, 10);
     const col = collection(db, 'suits');
-    const q = query(
-        col,
-        where('tags', 'array-contains-any', searchTags)
-    );
+    const q = query(col, where('tags', 'array-contains-any', searchTags));
     const snap = await getDocs(q);
-    return snap.docs
+    const all = snap.docs
         .map(d => ({ id: d.id, ...d.data() } as Suit))
-        .filter(s => s.id !== excludeId && !s.isDeleted && s.isActive)
-        .slice(0, limitCount);
+        .filter(s => s.id !== excludeId && !s.isDeleted && s.isActive);
+
+    if (!preferGender) return all.slice(0, limitCount);
+
+    // Prioritize: same gender → unisex → other gender
+    const sameGender = all.filter(s => s.gender === preferGender);
+    const unisex = all.filter(s => s.gender === 'unisex');
+    const other = all.filter(s => s.gender !== preferGender && s.gender !== 'unisex');
+    return [...sameGender, ...unisex, ...other].slice(0, limitCount);
 }

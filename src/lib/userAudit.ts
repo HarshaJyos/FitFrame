@@ -124,3 +124,23 @@ export async function migrateGuestAudits(uid: string): Promise<void> {
         localStorage.removeItem(GUEST_AUDIT_KEY);
     }
 }
+
+/** Admin: fetch all audit events across all users (collectionGroup query) */
+export async function getAllAuditEvents(maxEvents: number = 200): Promise<(AuditEvent & { userId?: string })[]> {
+    const { collectionGroup } = await import('firebase/firestore');
+    // No orderBy to avoid needing a Firestore composite index — sort in memory
+    const snap = await getDocs(collectionGroup(db, 'audits'));
+    const results = snap.docs.map(d => {
+        const pathParts = d.ref.path.split('/');
+        const userId = pathParts.length >= 2 ? pathParts[1] : undefined;
+        return {
+            id: d.id,
+            ...d.data(),
+            userId,
+            timestamp: (d.data().createdAt as Timestamp)?.toMillis?.() ?? 0,
+        } as AuditEvent & { userId?: string };
+    });
+    // Sort by timestamp descending in memory
+    results.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
+    return results.slice(0, maxEvents);
+}

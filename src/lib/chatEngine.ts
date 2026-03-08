@@ -361,9 +361,16 @@ function budgetResponse(ctx: UserContext, suits: Suit[], message: string): Engin
     return { text, products: picks.map(suitToSuggestion) };
 }
 
-function trendingResponse(suits: Suit[]): EngineResponse {
+function trendingResponse(ctx: UserContext, suits: Suit[]): EngineResponse {
     // Trending = newest + those with badges
-    const active = suits.filter(s => s.isActive && !s.isDeleted);
+    let active = suits.filter(s => s.isActive && !s.isDeleted);
+
+    // Filter by gender if user is identified
+    if (ctx.gender) {
+        const genderFiltered = active.filter(s => s.gender === ctx.gender || s.gender === 'unisex');
+        if (genderFiltered.length > 0) active = genderFiltered;
+    }
+
     const badged = active.filter(s => s.badge);
     const sorted = [
         ...badged,
@@ -374,7 +381,8 @@ function trendingResponse(suits: Suit[]): EngineResponse {
         return { text: "Our trending collection is being updated! Check back soon for the latest styles. 🔄" };
     }
 
-    let text = "🔥 **Trending Right Now**\n\n";
+    const genderNote = !ctx.gender ? '\n_Showing trending for both men & women_\n' : '';
+    let text = `🔥 **Trending Right Now**${genderNote}\n\n`;
     sorted.forEach((p, i) => {
         text += `${i + 1}. **${p.name}**`;
         if (p.badge) text += ` — ${p.badge}`;
@@ -405,9 +413,15 @@ function avatarHelpResponse(ctx: UserContext): EngineResponse {
     };
 }
 
-function productSearchResponse(suits: Suit[], message: string): EngineResponse {
+function productSearchResponse(ctx: UserContext, suits: Suit[], message: string): EngineResponse {
     const lower = message.toLowerCase();
-    const active = suits.filter(s => s.isActive && !s.isDeleted);
+    let active = suits.filter(s => s.isActive && !s.isDeleted);
+
+    // Filter by gender if user is identified
+    if (ctx.gender) {
+        const genderFiltered = active.filter(s => s.gender === ctx.gender || s.gender === 'unisex');
+        if (genderFiltered.length > 0) active = genderFiltered;
+    }
 
     // Search by keywords in name, category, fabric, tags
     const scored = active.map(s => {
@@ -423,10 +437,13 @@ function productSearchResponse(suits: Suit[], message: string): EngineResponse {
     const picks = scored.slice(0, 4).map(x => x.suit);
 
     if (picks.length === 0) {
-        return { text: "I couldn't find an exact match, but let me show you our latest collection! 🛍️", products: active.slice(0, 3).map(suitToSuggestion) };
+        const fallback = active.slice(0, 3);
+        const genderNote = !ctx.gender ? ' (showing for both men & women)' : '';
+        return { text: `I couldn't find an exact match, but let me show you our latest collection${genderNote}! 🛍️`, products: fallback.map(suitToSuggestion) };
     }
 
-    let text = `Here's what I found 🔍\n\n`;
+    const genderNote = !ctx.gender ? '\n_Showing results for both men & women_\n' : '';
+    let text = `Here's what I found 🔍${genderNote}\n\n`;
     picks.forEach((p, i) => {
         text += `${i + 1}. **${p.name}** — ₹${p.price.toLocaleString('en-IN')} (${p.category})\n`;
     });
@@ -537,11 +554,11 @@ export function processMessage(
         case 'budget_filter':
             return budgetResponse(ctx, suits, message);
         case 'trending':
-            return trendingResponse(suits);
+            return trendingResponse(ctx, suits);
         case 'avatar_help':
             return avatarHelpResponse(ctx);
         case 'product_search':
-            return productSearchResponse(suits, message);
+            return productSearchResponse(ctx, suits, message);
         case 'general_faq':
             return faqResponse(message);
         case 'unknown':

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { addToCart, toggleWishlist, getWishlist } from '@/lib/firestore';
+import { addToCart, toggleWishlist, getWishlist, getUserProfile } from '@/lib/firestore';
 import { getAllReviews } from '@/lib/reviews';
 import { getActiveSuits, Suit } from '@/lib/suits';
 
@@ -18,6 +18,7 @@ export default function ShopPage() {
     const [wishlistedIds, setWishlistedIds] = useState<Set<string>>(new Set());
     const [cartFeedback, setCartFeedback] = useState<Record<string, boolean>>({});
     const [suitRatings, setSuitRatings] = useState<Record<string, { avg: number; count: number }>>({});
+    const [userGender, setUserGender] = useState<'male' | 'female' | null>(null);
 
     // Filter States
     const [category, setCategory] = useState('All');
@@ -58,6 +59,27 @@ export default function ShopPage() {
             setSuitRatings(result);
         }).catch(console.error);
     }, []);
+
+    // Load user gender
+    useEffect(() => {
+        const loadGender = async () => {
+            if (user) {
+                try {
+                    const profile = await getUserProfile(user.uid);
+                    if (profile?.gender) { setUserGender(profile.gender); return; }
+                } catch { /* fall through */ }
+            }
+            // localStorage fallback
+            try {
+                const raw = localStorage.getItem('fitframe_user');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed.gender) setUserGender(parsed.gender);
+                }
+            } catch { /* ignore */ }
+        };
+        loadGender();
+    }, [user]);
 
     // Load wishlist
     useEffect(() => {
@@ -116,17 +138,29 @@ export default function ShopPage() {
         );
     };
 
-    const displayed = useMemo(() => suits.filter(s => {
-        if (category !== 'All' && s.category !== category) return false;
-        if (s.price < priceRange[0] || s.price > priceRange[1]) return false;
-        if (selectedSizes.length > 0 && !(s.sizes || []).some(size => selectedSizes.includes(size))) return false;
-        if (selectedColors.length > 0 && !selectedColors.includes(s.color)) return false;
-        if (minRating > 0) {
-            const rating = suitRatings[s.id!]?.avg || 0;
-            if (rating < minRating) return false;
+    const displayed = useMemo(() => {
+        let filtered = suits.filter(s => {
+            if (category !== 'All' && s.category !== category) return false;
+            if (s.price < priceRange[0] || s.price > priceRange[1]) return false;
+            if (selectedSizes.length > 0 && !(s.sizes || []).some(size => selectedSizes.includes(size))) return false;
+            if (selectedColors.length > 0 && !selectedColors.includes(s.color)) return false;
+            if (minRating > 0) {
+                const rating = suitRatings[s.id!]?.avg || 0;
+                if (rating < minRating) return false;
+            }
+            return true;
+        });
+
+        // Gender-aware sorting: user's gender first → unisex → other
+        if (userGender) {
+            const sameGender = filtered.filter(s => s.gender === userGender);
+            const unisex = filtered.filter(s => s.gender === 'unisex');
+            const other = filtered.filter(s => s.gender !== userGender && s.gender !== 'unisex');
+            filtered = [...sameGender, ...unisex, ...other];
         }
-        return true;
-    }), [suits, category, priceRange, selectedSizes, selectedColors, minRating, suitRatings]);
+
+        return filtered;
+    }, [suits, category, priceRange, selectedSizes, selectedColors, minRating, suitRatings, userGender]);
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -136,9 +170,11 @@ export default function ShopPage() {
             <div style={{ background: 'linear-gradient(135deg, #fff7ed, #fdf8f3)', padding: '2.5rem 1.25rem 2rem', borderBottom: '1px solid var(--border)' }}>
                 <div className="max-w-6xl mx-auto">
                     <p style={{ fontSize: '0.78rem', color: 'var(--text-3)', marginBottom: 4 }}>
-                        <Link href="/" style={{ color: 'var(--text-3)' }}>Home</Link> / Men&apos;s Suits
+                        <Link href="/" style={{ color: 'var(--text-3)' }}>Home</Link> / {userGender === 'female' ? "Women's Collection" : userGender === 'male' ? "Men's Suits" : 'All Styles'}
                     </p>
-                    <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>Men&apos;s Suits</h1>
+                    <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>
+                        {userGender === 'female' ? "Women's Collection" : userGender === 'male' ? "Men's Suits" : 'All Styles'}
+                    </h1>
                     <p style={{ color: 'var(--text-2)', fontSize: '0.9rem' }}>
                         {loading ? 'Loading…' : `${displayed.length} style${displayed.length !== 1 ? 's' : ''}`} · Try any on your 3D avatar
                     </p>

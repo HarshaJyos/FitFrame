@@ -58,6 +58,9 @@ export default function ProductPage() {
     const [cartFeedback, setCartFeedback] = useState<Record<string, boolean>>({});
     const [relatedRatings, setRelatedRatings] = useState<Record<string, number>>({});
     const viewerRef = useRef<AvatarViewer3DHandle | null>(null);
+    const [isGenderMismatch, setIsGenderMismatch] = useState(false);
+    const [tempMeasurements, setTempMeasurements] = useState<StoredUser | null>(null);
+    const [showTempModal, setShowTempModal] = useState(false);
 
     // Load suit and related data from Firestore
     useEffect(() => {
@@ -75,8 +78,10 @@ export default function ProductPage() {
                 const revs = await getSuitReviews(suitId);
                 setReviews(revs);
 
+                // Gender-aware related products
+                const userGender = userData?.gender;
                 if (data.tags && Array.isArray(data.tags) && data.tags.length > 0) {
-                    const related = await getRelatedSuits(data.tags, data.id!);
+                    const related = await getRelatedSuits(data.tags, data.id!, 4, userGender);
                     setRelatedSuits(related);
                 }
             } catch (err) {
@@ -88,7 +93,7 @@ export default function ProductPage() {
         };
 
         loadData();
-    }, [suitId]);
+    }, [suitId, userData?.gender]);
 
     // Load user data: Firestore first, then localStorage fallback
     useEffect(() => {
@@ -115,7 +120,22 @@ export default function ProductPage() {
             } catch { /* ignore */ }
         };
         loadUser();
+
+        // Load temp cross-gender measurements from localStorage
+        try {
+            const tempRaw = localStorage.getItem('fitframe_temp_measurements');
+            if (tempRaw) setTempMeasurements(JSON.parse(tempRaw));
+        } catch { /* ignore */ }
     }, [user]);
+
+    // Detect gender mismatch between user and suit
+    useEffect(() => {
+        if (suit && userData && suit.gender !== 'unisex' && userData.gender !== suit.gender) {
+            setIsGenderMismatch(true);
+        } else {
+            setIsGenderMismatch(false);
+        }
+    }, [suit, userData]);
 
     // Check wishlist
     useEffect(() => {
@@ -431,6 +451,39 @@ export default function ProductPage() {
                                 <div style={{ flex: 1, textAlign: 'center', background: '#fff', borderRadius: 8, padding: '0.6rem' }}>
                                     <p style={{ fontSize: '0.68rem', color: 'var(--text-3)', marginBottom: 2 }}>Confidence</p>
                                     <p style={{ fontSize: '1.4rem', fontWeight: 900, color: '#10b981' }}>{sizes.confidence}%</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Cross-gender mismatch notice */}
+                    {isGenderMismatch && userData && (
+                        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '0.85rem', marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                                <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>ℹ️</span>
+                                <div>
+                                    <p style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e40af', marginBottom: 4 }}>
+                                        This is a {suit.gender === 'male' ? "men's" : "women's"} item
+                                    </p>
+                                    <p style={{ fontSize: '0.78rem', color: '#3b82f6', lineHeight: 1.4, marginBottom: 8 }}>
+                                        Your avatar is set to {userData.gender}. For the best 3D preview, you can enter temporary measurements for {suit.gender === 'male' ? 'a male' : 'a female'} body.
+                                    </p>
+                                    {tempMeasurements && tempMeasurements.gender === suit.gender ? (
+                                        <div style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600 }}>
+                                            ✓ Using temporary {suit.gender} measurements
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => setShowTempModal(true)}
+                                            style={{
+                                                padding: '0.45rem 0.85rem', borderRadius: 8,
+                                                background: '#3b82f6', color: '#fff', border: 'none',
+                                                fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+                                            }}
+                                        >
+                                            Enter temp {suit.gender} measurements
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
