@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import SearchOverlay from './SearchOverlay';
 
 export default function Navbar() {
     const { user, signOut, loading } = useAuth();
@@ -14,6 +15,7 @@ export default function Navbar() {
     const [cartCount, setCartCount] = useState(0);
     const [wishlistCount, setWishlistCount] = useState(0);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
 
     useEffect(() => {
         if (!user) {
@@ -45,7 +47,7 @@ export default function Navbar() {
         router.push('/');
     };
 
-    return (
+    return (<>
         <nav style={{ background: '#fff', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 50 }}>
             <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
                 {/* Logo */}
@@ -72,6 +74,12 @@ export default function Navbar() {
 
                 {/* Right actions */}
                 <div className="flex items-center gap-3">
+                    {/* Search */}
+                    <button onClick={() => setSearchOpen(true)} style={{ padding: '6px', borderRadius: 8, display: 'flex', alignItems: 'center', color: 'var(--text-2)', background: 'none', border: 'none', cursor: 'pointer' }} aria-label="Search">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                    </button>
                     {/* Cart */}
                     {user && (
                         <Link href="/cart" style={{ position: 'relative', padding: '6px', borderRadius: 8, display: 'flex', alignItems: 'center', color: 'var(--text-2)' }}>
@@ -122,5 +130,8 @@ export default function Navbar() {
                 </div>
             </div>
         </nav>
-    );
+
+        {/* Search Overlay */}
+        {searchOpen && <SearchOverlay onCloseAction={() => setSearchOpen(false)} />}
+    </>);
 }
