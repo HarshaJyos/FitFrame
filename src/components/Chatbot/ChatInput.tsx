@@ -8,11 +8,11 @@ interface ChatInputProps {
 }
 
 const QUICK_REPLIES = [
-    '👔 Suggest an outfit',
-    '📏 My size',
-    '🔥 Trending',
-    '🎭 3D Try-On help',
-    '💰 Budget finds',
+    { emoji: '👔', label: 'Suggest an outfit' },
+    { emoji: '📏', label: 'My size' },
+    { emoji: '🔥', label: 'Trending' },
+    { emoji: '🎭', label: '3D Try-On help' },
+    { emoji: '💰', label: 'Budget finds' },
 ];
 
 export default function ChatInput({ onSend, disabled }: ChatInputProps) {
@@ -34,30 +34,51 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         }
     };
 
-    const handleQuickReply = (reply: string) => {
-        // Remove emoji prefix for cleaner queries
-        const clean = reply.replace(/^[^\w]*\s*/, '');
-        onSend(clean);
-    };
-
     return (
-        <div className="chatbot-input-area">
+        <div style={{
+            padding: '10px 14px 14px',
+            borderTop: '1px solid var(--border)',
+            background: '#fff',
+            flexShrink: 0,
+        }}>
             {/* Quick replies */}
-            <div className="chatbot-quick-replies">
+            <div style={{
+                display: 'flex',
+                gap: 6,
+                overflowX: 'auto',
+                paddingBottom: 8,
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+            }}>
                 {QUICK_REPLIES.map((qr) => (
                     <button
-                        key={qr}
-                        className="chatbot-chip"
-                        onClick={() => handleQuickReply(qr)}
+                        key={qr.label}
+                        onClick={() => onSend(qr.label)}
                         disabled={disabled}
+                        style={{
+                            whiteSpace: 'nowrap',
+                            padding: '5px 10px',
+                            borderRadius: 99,
+                            border: '1px solid var(--border)',
+                            background: 'var(--bg)',
+                            color: 'var(--text-2)',
+                            fontSize: '0.72rem',
+                            fontWeight: 500,
+                            cursor: disabled ? 'not-allowed' : 'pointer',
+                            opacity: disabled ? 0.5 : 1,
+                            flexShrink: 0,
+                            transition: 'border-color 0.15s, color 0.15s',
+                        }}
+                        onMouseEnter={e => { if (!disabled) { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; } }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-2)'; }}
                     >
-                        {qr}
+                        {qr.emoji} {qr.label}
                     </button>
                 ))}
             </div>
 
             {/* Input bar */}
-            <div className="chatbot-input-bar">
+            <div style={{ display: 'flex', gap: 8 }}>
                 <input
                     ref={inputRef}
                     type="text"
@@ -66,14 +87,36 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
                     onKeyDown={handleKeyDown}
                     placeholder="Ask me anything about fashion..."
                     disabled={disabled}
-                    className="chatbot-text-input"
                     autoComplete="off"
+                    style={{
+                        flex: 1,
+                        padding: '10px 14px',
+                        border: '1px solid var(--border)',
+                        borderRadius: 12,
+                        background: 'var(--bg)',
+                        color: 'var(--text)',
+                        fontSize: '0.85rem',
+                        outline: 'none',
+                    }}
                 />
                 <button
                     onClick={handleSend}
                     disabled={disabled || !text.trim()}
-                    className="chatbot-send-btn"
                     aria-label="Send message"
+                    style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 12,
+                        border: 'none',
+                        background: 'var(--accent)',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: (disabled || !text.trim()) ? 'not-allowed' : 'pointer',
+                        opacity: (disabled || !text.trim()) ? 0.5 : 1,
+                        flexShrink: 0,
+                    }}
                 >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="22" y1="2" x2="11" y2="13" />
