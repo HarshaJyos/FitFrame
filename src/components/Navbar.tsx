@@ -53,7 +53,7 @@ export default function Navbar() {
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 flex-shrink-0">
                     <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 15 }}>F</div>
-                    <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)' }}>FitFrame</span>
+                    <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)' }}>TryOnME</span>
                 </Link>
 
                 {/* Desktop nav */}

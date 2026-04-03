@@ -47,7 +47,7 @@ function AccountContent() {
                                     </div>
                                 )}
                                 <div>
-                                    <h2 style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text)', marginBottom: 2 }}>{user?.displayName ?? 'FitFrame User'}</h2>
+                                    <h2 style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text)', marginBottom: 2 }}>{user?.displayName ?? 'TryOnME User'}</h2>
                                     <p style={{ color: 'var(--text-2)', fontSize: '0.88rem' }}>{user?.email}</p>
                                 </div>
                                 <div style={{ flex: 1 }} />

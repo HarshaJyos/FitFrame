@@ -220,8 +220,8 @@ function suitToSuggestion(s: Suit): ProductSuggestion {
 function greetResponse(ctx: UserContext): EngineResponse {
     const name = ctx.displayName ? ` ${ctx.displayName}` : '';
     const greetings = [
-        `Hey${name}! 👋 I'm your FitFrame fashion stylist. How can I help you look amazing today?`,
-        `Hello${name}! ✨ Welcome to FitFrame. I can help you find the perfect outfit, check your size, or guide you through our 3D try-on. What would you like?`,
+        `Hey${name}! 👋 I'm your TryOnME fashion stylist. How can I help you look amazing today?`,
+        `Hello${name}! ✨ Welcome to TryOnME. I can help you find the perfect outfit, check your size, or guide you through our 3D try-on. What would you like?`,
         `Hi${name}! 🎨 Ready to find your perfect look? Ask me about outfits, sizing, trending styles, or our virtual try-on feature!`,
     ];
     return { text: greetings[Math.floor(Math.random() * greetings.length)] };

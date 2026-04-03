@@ -42,12 +42,12 @@ export default function RegisterPage() {
         <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1.25rem' }}>
             <Link href="/" className="flex items-center gap-2 mb-8">
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 18 }}>F</div>
-                <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--text)' }}>FitFrame</span>
+                <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--text)' }}>TryOnME</span>
             </Link>
 
             <div className="card w-full" style={{ maxWidth: 420, padding: '2.5rem' }}>
                 <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text)', marginBottom: '0.25rem' }}>Create account</h1>
-                <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', marginBottom: '2rem' }}>Join FitFrame for virtual try-ons & shopping</p>
+                <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', marginBottom: '2rem' }}>Join TryOnME for virtual try-ons & shopping</p>
 
                 <button onClick={handleGoogle} disabled={loading}
                     style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '0.85rem', borderRadius: 12, border: '1.5px solid var(--border)', background: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1.25rem' }}>

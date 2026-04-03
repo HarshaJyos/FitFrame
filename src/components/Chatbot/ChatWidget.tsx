@@ -16,7 +16,7 @@ import { logChatIntent, migrateGuestAudits } from '@/lib/userAudit';
 const WELCOME_MSG: ChatMessage = {
     id: 'welcome',
     role: 'bot',
-    text: "Hey there! 👋 I'm your **FitFrame fashion stylist**. I can help you with:\n\n• 👔 Outfit suggestions\n• 📏 Size recommendations\n• 🔥 Trending styles\n• 🎭 3D virtual try-on guidance\n• 💰 Budget-friendly finds\n\nWhat would you like help with?",
+    text: "Hey there! 👋 I'm your **TryOnME fashion stylist**. I can help you with:\n\n• 👔 Outfit suggestions\n• 📏 Size recommendations\n• 🔥 Trending styles\n• 🎭 3D virtual try-on guidance\n• 💰 Budget-friendly finds\n\nWhat would you like help with?",
     timestamp: Date.now(),
 };
 
@@ -216,7 +216,7 @@ export default function ChatWidget() {
                                     fontSize: 18,
                                 }}>✨</div>
                                 <div>
-                                    <div style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>FitFrame Stylist</div>
+                                    <div style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>TryOnME Stylist</div>
                                     <div style={{ fontSize: '0.72rem', opacity: 0.85, display: 'flex', alignItems: 'center', gap: 4 }}>
                                         <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80', display: 'inline-block' }} />
                                         Online

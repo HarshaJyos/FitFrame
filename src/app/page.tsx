@@ -86,7 +86,7 @@ export default function HomePage() {
 
       {/* ── Footer ── */}
       <footer style={{ background: '#fff', borderTop: '1px solid var(--border)', padding: '1.5rem', textAlign: 'center' }}>
-        <p style={{ color: 'var(--text-3)', fontSize: '0.82rem' }}>© 2025 FitFrame — Virtual Try-On Platform</p>
+        <p style={{ color: 'var(--text-3)', fontSize: '0.82rem' }}>© 2025 TryOnME — Virtual Try-On Platform</p>
       </footer>
     </div>
   );

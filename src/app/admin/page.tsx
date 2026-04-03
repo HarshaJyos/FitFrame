@@ -46,7 +46,7 @@ function AdminDashboard() {
         <div style={{ padding: '2rem' }}>
             <div style={{ marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#1e293b', marginBottom: 4 }}>Dashboard</h1>
-                <p style={{ color: '#64748b', fontSize: '0.88rem' }}>Overview of your FitFrame store</p>
+                <p style={{ color: '#64748b', fontSize: '0.88rem' }}>Overview of your TryOnME store</p>
             </div>
 
             {/* Stats grid */}

@@ -96,7 +96,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess, items, totalA
                     amount: orderData.amount,
                     currency: orderData.currency,
                     order_id: orderData.orderId,
-                    name: 'FitFrame',
+                    name: 'TryOnME',
                     description: items.map(i => i.label).join(', '),
                     image: '/favicon.ico',
                     prefill: {

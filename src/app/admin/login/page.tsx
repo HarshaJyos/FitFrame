@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
                 {/* Logo */}
                 <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                     <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '1.4rem', margin: '0 auto 0.75rem' }}>⚙️</div>
-                    <h1 style={{ color: '#fff', fontWeight: 800, fontSize: '1.4rem', marginBottom: 4 }}>FitFrame Admin</h1>
+                    <h1 style={{ color: '#fff', fontWeight: 800, fontSize: '1.4rem', marginBottom: 4 }}>TryOnME Admin</h1>
                     <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Restricted access. Admin only.</p>
                 </div>
 

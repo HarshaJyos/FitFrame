@@ -7,11 +7,11 @@ import ChatbotLoader from '@/components/ChatbotLoader';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 export const metadata: Metadata = {
-  title: 'FitFrame — Virtual Try-On',
+  title: 'TryOnME — Virtual Try-On',
   description: 'See how clothes look on your exact body shape before you buy. Enter your measurements and try on outfits in 3D.',
   keywords: 'virtual try-on, 3D fashion, clothing simulator, body avatar',
   openGraph: {
-    title: 'FitFrame — Virtual Try-On',
+    title: 'TryOnME — Virtual Try-On',
     description: 'Try on clothes in 3D using your real measurements',
     type: 'website',
   },

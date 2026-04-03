@@ -38,7 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>⚙️</div>
                         <div>
-                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>FitFrame</div>
+                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>TryOnME</div>
                             <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 500 }}>Admin Panel</div>
                         </div>
                     </div>
