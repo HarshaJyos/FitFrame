@@ -35,7 +35,7 @@ function LoginForm() {
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1.25rem' }}>
             <Link href="/" className="flex items-center gap-2 mb-8">
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 18 }}>F</div>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 18 }}>TOM</div>
                 <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--text)' }}>TryOnME</span>
             </Link>
 
